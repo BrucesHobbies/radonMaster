@@ -7,7 +7,7 @@ Radon mitigation monitoring for homes and buildings - This is a DIY project for 
 According to the US Environmental Protection Agency (EPA), radon gas is the major cause of lung cancer amongst non-smokers killing about 21,000 people each year in the USA and 20,000 in the European Union. Radon gas is part of the breakdown chain of naturally occurring radioactive materials in the ground beneath our homes.  It seeps into our homes through the tiniest of openings including tiny cracks in our basement floors, crawl spaces, and building foundations. It is invisible, odorless, colorless, and tasteless. Worse yet, it clings to dust and surfaces and is easily inhaled making it a severe health hazard. Scientists estimate that half the radiation we are exposed to in our lifetimes comes from radon gas. More than what we are exposed to from cosmic rays, medical / dental screening, food, and drink combined!
 When I recently bought a house I was told that radon was not an issue. I then bought a radon detector. It measured over 8 pCi/L whereas outdoor levels are typically only around 0.3 pCi/L. Urgent action was required! A review of mitigation systems offered alternatives from venting to active fan systems that either pressurize the whole house with outside air or under home depressurization (vacuum).  The home already had an under concrete slab vent system so it was time to get an active fan system. The  fan systems usually connect a sump well, drain tile, or sub-membrane beneath the building foundation or slab to a fan that then vacuums the vapors including radon gas to the outside where is disperses. The vent area should not be above or below a living area nor within 10 feet of windows, doors, or openings.  I installed a radon fan for mitigation and the measured radon levels started to drop over the next few weeks from over 8 to under 1 pCi/L. Radon has a half-life of 3.8 days so it takes a while to dissipate.  The levels are now running around the typical outdoor level. However, if the radon mitigation fan should ever fail, I would silently be exposed to very high levels of radioactive radon. 
 
-![Figure 1: Radon Mitigation System Components (source: [Minnesota Department of Health: Radon Mitigation](https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets))](https://github.com/BrucesHobbies/radonMaster/figures/Figure1.png)
+![Figure 1: Radon Mitigation System Components (source: [Minnesota Department of Health: Radon Mitigation](https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets))](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure1.png)
 
 I installed a u-tube manometer to measure the suction of the radon mitigation fan system as shown in the figure. A manometer uses the difference in water height in a U-shaped tube to show the pressure difference. They are available for about $10 - $20 USD. However, most people don’t spend a lot of time in the basement or under their home in a crawl space looking at a manometer on their radon mitigation system. There are commercial alarm systems that are available for about $80 USD that sound an alarm if the radon mitigation system loses pressure. However, I noticed that when we have windy days,  the wind gusts as seen on the manometer are large. I was looking for something that was better. I wanted something that I could adjust the alert levels and also something that wouldn’t sound an alarm in the middle of the night, which would be worse than a smoke detector’s low battery chirp in the middle of the night. I wanted a system that would send an alert to my cell phone as a text message that I could then quickly follow up on the next day.
 
@@ -76,20 +76,20 @@ The 3.3 VDC pressure sensors are recommended but, if you purchased a 5.0 VDC pre
 ## Wiring photo at pressure sensor and RPI
 You will purchase either an SPI or I2C pressure sensor, not both. The SPI version is recommended but both sets of photos are included to provide choices.
 
-![Figure 2: SPI Pressure Sensor Wiring – Note tube is attached to P1 port which is designed for liquids.](https://github.com/BrucesHobbies/radonMaster/figures/Figure2.png)
+![Figure 2: SPI Pressure Sensor Wiring – Note tube is attached to P1 port which is designed for liquids.](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure2.png)
 
-![Figure 3: SPI Wiring on RPI – Note white wire looks gray in this photo.](https://github.com/BrucesHobbies/radonMaster/figures/Figure3.png)
+![Figure 3: SPI Wiring on RPI – Note white wire looks gray in this photo.](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure3.png)
 
-![Figure 4: I2C power pins](https://github.com/BrucesHobbies/radonMaster/figures/Figure4.png)
+![Figure 4: I2C power pins](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure4.png)
 
-![Figure 5: I2C bus pins](https://github.com/BrucesHobbies/radonMaster/figures/Figure5.png)
+![Figure 5: I2C bus pins](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure5.png)
 
-![Figure 6: I2C Wiring on RPI](https://github.com/BrucesHobbies/radonMaster/figures/Figure6.png)
+![Figure 6: I2C Wiring on RPI](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure6.png)
 
 ## Mount pressure sensor to mitigation fan pipe photo
 Here is an example of an existing manometer that was installed on the mitigation pipe. You can replace the manometer tube with a tube that runs to the Honeywell pressure sensor port P1 (shown in photo) or you can drill a new hole that fits the tube size. 
 
-![Figure 7: Tube installation](https://github.com/BrucesHobbies/radonMaster/figures/Figure7.png)
+![Figure 7: Tube installation](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure7.png)
 
 # Software Installation
 ## Step 1: Setup the Raspberry Pi Operating System.
@@ -135,11 +135,12 @@ To disable alert messages, change the alertsEnabled value to 0 in “radonMaster
 You can use Google Gmail to send status and alert emails. Others have also used Microsoft Live/Outlook/Hotmail, Yahoo, Comcast, ATT, Verizon, and other email servers. 
 Currently, status and alert messages are sent by email which can also be sent as an SMS text to your cell phone.  Gmail works with Python on the Raspberry Pi if you set the Gmail security settings to low. As such, you can create a separate Gmail account to send messages from. Under your Gmail account settings you will need to make the following change to allow “Less secure app access”.
 
-![Figure 8: Gmail Less Secure App Access](https://github.com/BrucesHobbies/radonMaster/figures/Figure8.png)
+![Figure 8: Gmail Less Secure App Access](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure8.png)
+
 
 Then click on “Turn on access (not recommended)” by moving the slider to ON. Then click the back arrow.
 
-![Figure 9: Enable Less Secure App Access](https://github.com/BrucesHobbies/radonMaster/figures/Figure9.png)
+![Figure 9: Enable Less Secure App Access](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure9.png)
 
 # Running The Program From A Terminal Window 
 When your first email is sent at program startup, Google will ask you to confirm that it is you. You will need to sign into the device email account that you created and go to the critical security email that Google sent you and confirm you originated the email before Google will allow emails to be sent from your Python program.
