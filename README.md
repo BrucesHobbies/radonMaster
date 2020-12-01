@@ -9,7 +9,7 @@ When I recently bought a house I was told that radon was not an issue. I then bo
 
 ![Figure 1: Radon Mitigation System Components source: Minnesota Department of Health: Radon Mitigation (https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets)](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure1.png)
 
-[Figure 1: Radon Mitigation System Components source: Minnesota Department of Health: Radon Mitigation] (https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets)
+[Figure 1: Radon Mitigation System Components source: Minnesota Department of Health: Radon Mitigation](https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets)
 
 I installed a u-tube manometer to measure the suction of the radon mitigation fan system as shown in the figure. A manometer uses the difference in water height in a U-shaped tube to show the pressure difference. They are available for about $10 - $20 USD. However, most people don’t spend a lot of time in the basement or under their home in a crawl space looking at a manometer on their radon mitigation system. There are commercial alarm systems that are available for about $80 USD that sound an alarm if the radon mitigation system loses pressure. However, I noticed that when we have windy days,  the wind gusts as seen on the manometer are large. I was looking for something that was better. I wanted something that I could adjust the alert levels and also something that wouldn’t sound an alarm in the middle of the night, which would be worse than a smoke detector’s low battery chirp in the middle of the night. I wanted a system that would send an alert to my cell phone as a text message that I could then quickly follow up on the next day.
 
@@ -82,26 +82,33 @@ You will purchase either an SPI or I2C pressure sensor, not both. The SPI versio
 
 Figure 2: SPI Pressure Sensor
 
+
 ![Figure 3: SPI Wiring on RPI – Note white wire looks gray in this photo.](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure3.png)
 
 Figure 3: SPI Wiring on RPI
+
 
 ![Figure 4: I2C power pins](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure4.png)
 
 Figure 4: Alternative I2C Pressure Sensor Power Pins
 
+
 ![Figure 5: I2C bus pins](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure5.png)
 
 Figure 5: Alternative Pressure Sensor I2C Bus
+
 
 ![Figure 6: I2C Wiring on RPI](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure6.png)
 
 Figure 6: Alternative I2C Wiring on RPI
 
+
 ## Mount pressure sensor to mitigation fan pipe photo
 Here is an example of an existing manometer that was installed on the mitigation pipe. You can replace the manometer tube with a tube that runs to the Honeywell pressure sensor port P1 (shown in photo) or you can drill a new hole that fits the tube size. 
 
 ![Figure 7: Tube installation](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure7.png)
+
+Figure 7: Tube Installation
 
 # Software Installation
 ## Step 1: Setup the Raspberry Pi Operating System.
