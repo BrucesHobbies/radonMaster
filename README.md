@@ -6,13 +6,13 @@ When I recently bought a house I was told that radon was not an issue. I then bo
 
 Figure 1: Radon Mitigation System Components (source: [Minnesota Department of Health: Radon Mitigation](https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets))
 
-I installed a u-tube manometer to measure the suction of the radon mitigation fan system as shown in the figure. A manometer uses the difference in water height in a U-shaped tube to show the pressure difference. They are available for about $10 - $20 dollars. However, most people don’t spend a lot of time in the basement or under their home in a crawl space looking at a manometer on their radon mitigation system. There are commercial alarm systems that are available for about $80 USD that sound an alarm if the radon mitigation system loses pressure. However, I noticed that when we have windy days,  the wind gusts as seen on the manometer are large. I was looking for something that was better. I wanted something that I could adjust the alert levels and also something that wouldn’t sound an alarm in the middle of the night, which would be worse than a smoke detector’s low battery chirp in the middle of the night. I wanted a system that would send an alert to my cell phone as a text message that I could then quickly follow up on the next day.
+I installed a u-tube manometer to measure the suction of the radon mitigation fan system as shown in the figure. A manometer uses the difference in water height in a U-shaped tube to show the pressure difference. They are available for about $10 - $20 USD. However, most people don’t spend a lot of time in the basement or under their home in a crawl space looking at a manometer on their radon mitigation system. There are commercial alarm systems that are available for about $80 USD that sound an alarm if the radon mitigation system loses pressure. However, I noticed that when we have windy days,  the wind gusts as seen on the manometer are large. I was looking for something that was better. I wanted something that I could adjust the alert levels and also something that wouldn’t sound an alarm in the middle of the night, which would be worse than a smoke detector’s low battery chirp in the middle of the night. I wanted a system that would send an alert to my cell phone as a text message that I could then quickly follow up on the next day.
 
 Websites for further reading:
 
 [US EPA: Find Information About Local Radon Zones](https://www.epa.gov/radon/find-information-about-local-radon-zones-and-state-contact-information#radonmap)
 
-[US EPA: 2013_Consumers_Guide_to_Radon_Reduction](https://www.epa.gov/sites/production/files/2016-02/documents/2013_consumers_guide_to_radon_reduction.pdf)
+[US EPA: 2013 Consumers Guide to Radon Reduction](https://www.epa.gov/sites/production/files/2016-02/documents/2013_consumers_guide_to_radon_reduction.pdf)
 
 [Minnesota Department of Health: Radon Mitigation](https://www.health.state.mn.us/communities/environment/air/radon/mitigationsystem.html#:~:text=Three%20of%20the%20most%20common,placed%20on%20the%20sump%20baskets)
 
@@ -27,7 +27,7 @@ The Raspberry Pi looked like an ideal platform to monitor the radon mitigation p
 -	Plastic tube
 -	Wire, soldering iron, and solder
 
-I used the ABPMANN001PDSA3 which is a 3-wire SPI bus interface in a DIP package (Dual-Inline Package found with breadboards). I have also used the ABPDANN060MG2A3 which is a 2-wire I2C bus interface but in a surface mount package which requires soldering. Both are 3.3 Vdc supply voltage. The I2C pull up resistors are not required when used with the RPI.
+I used the ABPDRRV001PDSA3 which is a 3-wire SPI bus interface in a DIP package (Dual-Inline Package found with breadboards). I have also used the ABPMRR060MG2A3 which is a 2-wire I2C bus interface but in a surface mount package which requires soldering. Both are 3.3 Vdc supply voltage. The I2C pull up resistors are not required when used with the RPI.
 ## Raspberry Pi system (if you don’t already own one)
 - Raspberry Pi (any of the following)
   - RPI-Zero
@@ -49,7 +49,7 @@ A professionally installed Radon Mitigation system can cost around $2,000 USD or
 
 # Pressure sensor wiring and installation
 ## Wiring
-Each Honeywell pressure sensor is either i2c or SPI, but not both. The ABPMANN001PDSA3 which is a 3-wire SPI bus interface is recommended as it is a DIP package.
+Each Honeywell pressure sensor is either i2c or SPI, but not both. The ABPDRRV001PDSA3 which is a 3-wire SPI bus interface is recommended as it is a DIP package.
 
 **RASPBERRY PI SPI PINS to ABP PRESSURE SENSOR (5-wires total):**
 RPI 40-pin|SPI ABP (From Table 8 in Honeywell Data Sheet)|
@@ -70,7 +70,7 @@ Pin  6 (GND) =| Pin 1 (GND)|
 
 The 3.3 VDC pressure sensors are recommended but, if you purchased a 5.0 VDC pressure sensor then the 5 VDC supply on the pressure sensor pin 2 would go to the RPI Pin 2 (+5.0 VDC). You will need to convert the ABP’s 5 volt bus signals to the RPI bus 3.3 volt levels so this is not as straight forward as using the 3.3 VDC pressure sensor.
 
-# Wiring photo at pressure sensor and RPI
+## Wiring photo at pressure sensor and RPI
 You will purchase either an SPI or I2C pressure sensor, not both. The SPI version is recommended but both sets of photos are included to provide choices.
 
 Figure 2: SPI Pressure Sensor Wiring – Note tube is attached to P1 port which is designed for liquids.
@@ -83,7 +83,7 @@ Figure 5: I2C bus pins
 
 Figure 6: I2C Wiring on RPI
 
-# Mount pressure sensor to mitigation fan pipe photo
+## Mount pressure sensor to mitigation fan pipe photo
 Here is an example of an existing manometer that was installed on the mitigation pipe. You can replace the manometer tube with a tube that runs to the Honeywell pressure sensor port P1 (shown in photo) or you can drill a new hole that fits the tube size. 
 
 Figure 7: Tube installation
@@ -95,6 +95,7 @@ Here are the instructions to install the Raspberry Pi Operating System.
 
 ## Step 2: Install the I2C bus library
 If using a Honeywell I2C pressure sensor you will need this library. I would recommend installing it as you may want to use I2C in this project or others. If you don’t install python3-smbus, you will need to comment out the appropriate lines in the program code.
+
     sudo apt-get install python3-smbus
 
 ## Step 3: Enable SPI and/or I2C buses on RPI 
@@ -111,13 +112,14 @@ To verify SPI operation, type the following command which should result in the S
 
 ## Step 4: Download RadonMaster software
 There are 4 python files: radonMaster, sensorHnyAbp, sendEmail, and cfgData. To get a copy of the source files type in the following git command assuming you have already installed git:
+
     git clone https://github.com/BrucesHobbies/radonMaster
 
 ## Step 5: Software Configuration
 If you desire, you may edit radonMaster.py and change the user configuration section at the beginning of the file.
 
 ### Pressure Sensor Configuration
-Edit the RadonMaster.py program file if you used a different sensor than the ABPMANN001PDSA3. Please change the statement to match the variable range, units, and output type of the sensor you purchased. For example if you purchased the ABPDANN060MG2A3  change from “001PDS” to “060MG2”. Again, this statement is in the radonMaster.py file. More complete details are found in  “sensorHnyAbp.py”.
+Edit the RadonMaster.py program file if you used a different sensor than the ABPDRRV001PDSA3. Please change the statement to match the variable range, units, and output type of the sensor you purchased. For example if you purchased the ABPMRRV060MG2A3 change from “001PDS” to “060MG2”. Again, this statement is in the radonMaster.py file. More complete details are found in  “sensorHnyAbp.py”.
 
     sensor = sensorHnyAbp.SensorHnyAbp("001PDS")
     
@@ -166,7 +168,7 @@ VirginMobile|number@vmobl.com|
 ## Status Options Configuration
 If alerts are enabled (alertsEnabled=1) and you have entered valid email information you can choose to have a status message sent for a RPI well-being check. To change the time of day for the status message from noon local time, edit the hour and minute. Entering values outside the expected values will allow you to disable status messages. Range for HH is 0 -23 and for MM is 0 – 59.
 
-statusMsgHHMM  = [12, 0]  # Status message time to send [hh, mm]
+    statusMsgHHMM  = [12, 0]  # Status message time to send [hh, mm]
 
 Status messages are sent in one of three ways: fixed interval in days, on a specific day of month, or specific day of the week. 
 
@@ -228,8 +230,11 @@ While not required or recommended, you can change the following configuration pa
 
 # Auto Start at Boot
 Type the following command:
+
     sudo crontab –e
+    
 Select the type of editor you are familiar with. I used nano. Add the following line at the end of the file and then press ctrl+O to write the file and ctrl+X to exit the nano editor.
+
     @reboot sleep 60 && cd radonMaster && python3 radonMaster.py
 
 # Feedback
