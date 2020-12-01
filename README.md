@@ -32,7 +32,7 @@ The Raspberry Pi looked like an ideal platform to monitor the radon mitigation p
 -	Plastic tube
 -	Wire, soldering iron, and solder
 
-I used the ABPDRRV001PDSA3 which is a 3-wire SPI bus interface in a DIP package (Dual-Inline Package found with breadboards). I have also used the ABPMRR060MG2A3 which is a 2-wire I2C bus interface but in a surface mount package which requires soldering. Both are 3.3 Vdc supply voltage. The I2C pull up resistors are not required when used with the RPI.
+I used the ABPDRRV001PDSA3 which is a 3-wire SPI bus interface in a DIP package (Dual-Inline Package used with breadboards). I have also used the ABPMRR060MG2A3 which is a 2-wire I2C bus interface but in a surface mount package which requires soldering. Both are 3.3 Vdc supply voltage. The I2C pull up resistors are not required when used with the RPI.
 ## Raspberry Pi system (if you don’t already own one)
 - Raspberry Pi (any of the following)
   - RPI-Zero
