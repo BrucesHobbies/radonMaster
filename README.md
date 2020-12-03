@@ -27,17 +27,19 @@ Websites for further reading:
 The Raspberry Pi looked like an ideal platform to monitor the radon mitigation pressure. This project uses a small inexpensive digital pressure sensor from Honeywell with a Raspberry Pi to monitor and send alerts for a radon mitigation fan loss of vacuum. The alerts can be an email or SMS message sent via email. Feel free to contribute with custom alert options such as MQTT, IFTT, etc.  RadonMaster™ logs the pressure sensor readings to a Comma Separated Variable (CSV) file that can be plotted using MatPlobLib or in a spreadsheet. The program is written in Python and can be ported to additional platforms, but the RPI is one of the most common platforms.
 
 # Required Hardware 
-## RadonMaster
--	Honeywell ABP pressure sensor available from Digikey, Mouser, Arrow, etc. for around $13 USD 
--	Plastic tube
+As an Amazon Associate I earn from qualifying purchases. I appreciate your support, if you purchase using the links below.
+## RadonMaster (about $20 USD for parts)
+-	Honeywell ABPDRRV001PDSA3 or ABPMRRV060MG2A3 pressure sensor available from Mouser, Arrow, Newark, Digikey, etc. for around $13 USD
+[Mouser: ABPDRRV001PDSA3](https://www.mouser.com/ProductDetail/Honeywell/ABPDRRV001PDSA3?qs=%2Fha2pyFadui6v3NmLJXcNaJhDLtsWyFpilGTkFr3RAit4EGjj7MIDQ%3D%3D)
+-	Plastic tube 1.6mm ID [Amazon: Plastic Tube]( https://amzn.to/3myZdVW)
 -	Wire, soldering iron, and solder
 
 I used the ABPDRRV001PDSA3 which is a 3-wire SPI bus interface in a DIP package (Dual-Inline Package used with breadboards). I have also used the ABPMRR060MG2A3 which is a 2-wire I2C bus interface but in a surface mount package which requires soldering. Both are 3.3 Vdc supply voltage. The I2C pull up resistors are not required when used with the RPI.
 ## Raspberry Pi system (if you don’t already own one)
 - Raspberry Pi (any of the following)
-  - RPI-Zero
-  - RPI 3B+
-  - RPI 4
+  - [RPI-Zero]( https://amzn.to/3ly0mM0)
+  - [RPI 3B+]( https://amzn.to/3lyPBJe)
+  - [RPI 4B]( https://amzn.to/2Vwulto)
 - Power adapter for your Raspberry Pi
 - Heatsinks (optional)
 - SD-Card
@@ -46,11 +48,13 @@ For installing the Raspberry Pi operating system, you may want a USB keyboard an
 
 ## Optional Hardware
 A professionally installed Radon Mitigation system can cost around $2,000 USD or more. I installed mine for several hundred dollars in an afternoon and had excellent results. The Airthings Wave Plus radon monitor is outstanding. Here is what I purchased for radon detection and mitigation:
-- Radon monitor: Airthings Wave - Radon detector with free app and no lab fees – battery operated
-- Radon mitigation fans: RadonAway 23030-1 RP145 Radon Mitigation Fan, 4"
-- Manometer: RadonAway 50018 Easy Read Manometer
+- [Radon monitor: Airthings Wave Plus]( https://amzn.to/3mAAz7c)
+- Radon Mitigation Fan Options
+  - [RadonAway RP145 Radon Mitigation Fan](https://amzn.to/33CHlln)
+  - [RadonAway RP140 Radon Mitigation Fan](https://amzn.to/3oi1eq2) Slightly less air flow but more energy efficient than RP145
+- [RadonAway 50018 Easy Read Manometer](https://amzn.to/36wLl8R)
 - 3” to 4” Couplers depending on pipe size you plan to use from the sump well
-- Butyl tape to seal sump well. Many people are recommending various silicon sealants which are messy and difficult to remove. An alternative is Butyl tape since it is easy to remove to service the sump pump inside the sump well. My sump well has a backup pump inside the sump well in case the primary pump inside the sump well fails.
+- [Butyl tape to seal sump well](https://amzn.to/2L1dI74) Many people are recommending various silicon sealants which are messy and difficult to remove. An alternative is Butyl tape since it is easy to remove to service the sump pump and backup pumps inside the sump well.
 
 # Pressure sensor wiring and installation
 ## Wiring
