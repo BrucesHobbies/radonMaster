@@ -9,6 +9,7 @@ DATE: 12/1/2020
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
+  2020/12/05  BrucesHobbies   Added WavePlus alerts and logging over bluetooth
 
 
 OVERVIEW:
@@ -53,6 +54,10 @@ import subprocess
 import sensorHnyAbp
 import sendEmail
 import cfgData
+
+AIRTHINGS = 0      # Default = 0, which is WavePlus bluetooth monitoring and logging disabled
+if AIRTHINGS :
+    import wave    # Added 12/5/2020
 
 #
 # --- User pressure/vacuum sensor configuration parameters ---
@@ -256,8 +261,61 @@ stopFlag = 0
 
 def myTimer() :
     global timer, count, sensorSum, lastReadTime, statusIntervalCntDn, lastAlertTime
+    global firstTimeAirthings
+    global lastPressMsg, lastWaveMsg
    
     t = datetime.datetime.now()
+
+    # Measure vacuum
+    status, result = abp.readAbpStatus()
+    if status == 0 : 
+        sensorSum = sensorSum + abp.pres2inwc(-result)       # change sign to convert pressure to vacuum
+        count = count + 1
+
+    # Calculate average vacuum over interval, log data, and check for alert conditions
+    if (count>=(tAverage*0.8) and t.second==0) :
+        sensorAvg = sensorSum/count
+        sensorSum = 0
+        count = 0
+
+        appendCsv(sensorAvg)
+
+        sAlg = radonAlg(sensorAvg)
+
+        lastPressMsg = '{0:s} Vacuum: {1:7.2f} in.wc'.format(formatLocalTime(), round(sensorAvg, 2))
+        print(lastPressMsg + " " + sAlg)
+
+        if not( sAlg=="" or sAlg[:3]=="Cal" ) :
+            # alertMsg = "Alert " + formatLocalTime() + " " + sAlg
+            alertMsg = "Alert " + lastPressMsg
+            print(alertMsg)
+
+            if alertsEnabled :
+                tsec = time.time()
+                if ((tsec-lastAlertTime) > minIntervalBtwAlerts) :
+                    lastAlertTime = tsec
+                    sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
+                            cfgData.cfgData_get("TO"), "RadonMaster Fan Alert", alertMsg)
+
+    if AIRTHINGS and (not (t.minute % 15)) and (t.second==30) :
+        if firstTimeAirthings :
+            firstTimeAirthings = 0
+            wave.writeHeaders()
+
+        try :
+            lastWaveMsg, alert, alertMsg = wave.readAirthings()
+            print(lastWaveMsg)
+
+            if alert :
+                if alertsEnabled :
+                    sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
+                            cfgData.cfgData_get("TO"), "RadonMaster WavePlus Alert", lastWaveMsg + "\n" + alertMsg)
+                else :
+                    print("=== ALERT! ===")
+                    print(alertMsg)
+
+        except :
+            print("Exception with Bluepy Airthings Wave...")
 
     # Send status message
     if (alertsEnabled and t.hour==statusMsgHHMM[0] and t.minute==statusMsgHHMM[1] and t.second==0) :
@@ -281,38 +339,11 @@ def myTimer() :
 
         if sendStatus :
             s = "Reporting at " + time.strftime("%a, %d %b %Y %H:%M:%S \n", time.localtime())
+            s = s + lastPressMsg + "\n" + lastWaveMsg
+
             sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
                 cfgData.cfgData_get("TO"), "RadonMaster Status", s)
     
-    # Measure vacuum
-    status, result = abp.readAbpStatus()
-    if status == 0 : 
-        sensorSum = sensorSum + abp.pres2inwc(-result)       # change sign to convert pressure to vacuum
-        count = count + 1
-
-    # Calculate average vacuum over interval, log data, and check for alert conditions
-    if (count>=tAverage and t.second==0) :
-        sensorAvg = sensorSum/count
-        sensorSum = 0
-        count = 0
-
-        appendCsv(sensorAvg)
-
-        sAlg = radonAlg(sensorAvg)
-
-        statusMsg = '{0:s} Vacuum: {1:7.2f} in.wc'.format(formatLocalTime(), round(sensorAvg, 2))
-        print(statusMsg + " " + sAlg)
-
-        if not( sAlg=="" or sAlg[:3]=="Cal" ) :
-            alertMsg = "Alert " + formatLocalTime() + " " + sAlg
-            print(alertMsg)
-
-            tsec = time.time()
-            if ((tsec-lastAlertTime) > minIntervalBtwAlerts) :
-                lastAlertTime = tsec
-                sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
-                    cfgData.cfgData_get("TO"), "RadonMaster Fan Alert", alertMsg)
-
     if not stopFlag :
         t = datetime.datetime.now()
         Timer(tInterval - t.microsecond/1000000., myTimer).start()	# every tInterval seconds
