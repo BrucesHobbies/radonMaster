@@ -26,6 +26,29 @@ Websites for further reading:
 # RadonMaster™ Project Overview
 The Raspberry Pi looked like an ideal platform to monitor the radon mitigation pressure. This project uses a small inexpensive digital pressure sensor from Honeywell with a Raspberry Pi to monitor and send alerts for a radon mitigation fan loss of vacuum. The alerts can be an email or SMS message sent via email. Feel free to contribute with custom alert options such as MQTT, IFTT, etc.  RadonMaster™ logs the pressure sensor readings to a Comma Separated Variable (CSV) file that can be plotted using MatPlobLib or in a spreadsheet. The program is written in Python and can be ported to additional platforms, but the RPI is one of the most common platforms.
 
+This program can connect to the AirThings WavePlus using the Raspberry Pi’s Bluetooth. The program will include the WavePlus sensor data in the radonMaster™ status message (daily, weekly, or monthly) and send an alert when one of the sensors changes outside of brackets defined in the thresholds of “wave.py” or custom alerts.  The default thresholds were set to be similar to recommendations at the end of 2020. The program will read and log all of the sensors from the WavePlus which include:
+- Radon short-term average
+- Radon long-term average
+- Volatile Organ Compounds (VOC) levels
+- Carbon Dioxide (CO2) levels
+- Temperature
+- Relative humidity
+- Atmospheric air pressure
+
+The program runs from a terminal window or at boot. If run from a terminal window the status screen is as shown below:
+
+    Sat, 2020-Dec-05, 11:20:00 Vacuum:   1.5 in.wc
+    Sat, 2020-Dec-05, 11:20:30 ‘Radon ST (pCi/L)’, ‘Radon LT (pCi/L)’, ‘VOC (ppb)’, "CO2 (ppm)’, ‘Temperature (degF)’, ‘Relative Humidity (%rH)’, ‘Air pressure (inHg)’
+    Sat, 2020-Dec-05, 11:20:30 ‘0.4 pCiL’, ‘0.7 pCi/L’, ’84.0 ppb’, ‘476.0 ppm’, ’66.9 degF’, ’32.5 5rH’, ’29.92 inHg’
+
+radonMasterPlot.py plots the radon mitigation fan pressure log and the WavePlus log data. You can view the plots and pan/zoom to specific time periods for the measurements.
+
+Figure 10: Radon Mitigation Vacuum
+
+Figure 11: Radon Levels
+
+Figure 12: VOC levels
+
 # Required Hardware 
 As an Amazon Associate I earn from qualifying purchases. I appreciate your support, if you purchase using the links below.
 ## RadonMaster (about $20 USD for parts)
@@ -118,6 +141,12 @@ Figure 7: Tube Installation
 ## Step 1: Setup the Raspberry Pi Operating System.
 Here are the instructions to install the Raspberry Pi Operating System.
 [Raspberry Software Install Procedure](https://www.raspberrypi.org/software/operating-systems/)
+
+Before continuing make sure your operating system has been updated with the latest updates.
+
+    sudo apt-get update
+    sudo apt-get upgrade
+    sudo reboot now
 
 ## Step 2: Install the I2C bus library
 If using a Honeywell I2C pressure sensor you will need this library. I would recommend installing it as you may want to use I2C in this project or others. If you don’t install python3-smbus, you will need to comment out the appropriate lines in the program code.
@@ -254,6 +283,54 @@ While not required or recommended, you can change the following configuration pa
     pDeltaLowSide  = 0.4    # delta inches water column 
     pDeltaHighSide = 0.4    # delta inches water column
     pLowPressAlert = 0.5    # Abs value in case auto calibration is off      
+
+# Enable Wave Plus (optional)
+
+## Bluetooth Library for AirThings WavePlus (optional)
+If you will be connecting to the AirThings WavePlus using Bluetooth on the RPI, you will not need to install any hardware, but you will need to install the “bluepy” library.
+
+    sudo pip3 install bluepy
+
+Once the library is installed verify that Bluetooth is powered on using the “show” command from bluetoothctl.
+
+    sudo bluetootctl
+    [bluetooth]# power on
+    [bluetooth]# show
+    [bluetooth]# exit
+
+Verify that bluetooth is powered on. If the library fails to install or Bluetooth fails to power up, radonMaster.py should recognize that and will continue to read the Honeywell pressure sensor for the radon mitigation fan vacuum. By default, reading the Airthings WavePlus is set off. See more about this under “Configuration of alert monitor and logger for Airthings WavePlus”.
+
+## Configuration of Alert Monitor and Logger for Airthings WavePlus (optional)
+To enable logging and monitoring and logging of an Airthings Wave Plus change the following variable in radonMaster.py to the following:
+
+    AIRTHINGS = 1      # Default = 0, which is monitoring and logging disabled
+
+For Bluetooth, “radonMaster.py” will need to run as super user (sudo) to have sufficient privileges to access the bluetooth hardware.
+
+    sudo python3 radonMaster.py
+
+radonMaster reads the WavePlus every 15 minutes but the WavePlus updates the radon measurements once an hour so the radon measurements will be unchanged while the temperature, humidity, and other sensors update more frequently. It is normal to lose a few measurements a day due to radio interference or collision with a smart phone app reading the WavePlus. 
+
+radonMaster.py will find any WavePlus sensors within Bluetooth range. The program assumes only a single WavePlus. If there are more than one WavePlus, comment out the find_wave function and type in the serial number found on the back of the WavePlus.
+Inside “wave.py” are a number of variables that can be changed. It is recommended to leave them at their default values.
+
+    #
+    # Airthings updated notification brackets
+    #
+    radonBrackets = ((4.0,"Red"),(2.7,"Yellow"),(0.0,"Green"))
+    vocBrackets   = ((2000.0,"Red"),(250.0,"Yellow"),(0.0,"Green"))
+    co2Brackets   =  ((2000.0,"Red"),(800.0,"Yellow"),(250.0,"Poor"),(0.0,"Good"))
+    #humidityBrackets are a separate function
+    tempBrackets  = ((77.0,"Red"),(64.0,"Green"),(-99.9,"Blue"))
+
+    THROTTLE_TIME = 24*60*60    # seconds
+
+# Plotting Log Files
+Simply open a new terminal window. Switch to the directory. 
+
+    python3 radonMasterPlot.py
+
+Use the buttons on the bottom of the plot windows to zoom and pan to the specific months, weeks, days, or hours of interest.
 
 # Auto Start at Boot
 Type the following command:
