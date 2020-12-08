@@ -41,13 +41,9 @@ The program runs from a terminal window or at boot. If run from a terminal windo
     Sat, 2020-Dec-05, 11:20:30 ‘Radon ST (pCi/L)’, ‘Radon LT (pCi/L)’, ‘VOC (ppb)’, "CO2 (ppm)’, ‘Temperature (degF)’, ‘Relative Humidity (%rH)’, ‘Air pressure (inHg)’
     Sat, 2020-Dec-05, 11:20:30 ‘0.4 pCiL’, ‘0.7 pCi/L’, ’84.0 ppb’, ‘476.0 ppm’, ’66.9 degF’, ’32.5 5rH’, ’29.92 inHg’
 
-radonMasterPlot.py plots the radon mitigation fan pressure log and the WavePlus log data. You can view the plots and pan/zoom to specific time periods for the measurements.
+radonMasterPlot.py plots the radon mitigation fan pressure log and the WavePlus log data. You can view the plots and pan/zoom to specific time periods for the measurements. It uses MatPlotLib and is easy to customize to plot what is of interest to you. Figure 1a is an example plot.
 
-Figure 10: Radon Mitigation Vacuum
-
-Figure 11: Radon Levels
-
-Figure 12: VOC levels
+![Figure 1a: Short and Long Term Radon Levels](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure1a.png)
 
 # Required Hardware 
 As an Amazon Associate I earn from qualifying purchases. I appreciate your support, if you purchase using the links below.
