@@ -24,7 +24,7 @@ Websites for further reading:
 [Wikipedia: Radon](https://en.wikipedia.org/wiki/Radon)
 
 # RadonMaster™ Project Overview
-The Raspberry Pi looked like an ideal platform to monitor the radon mitigation pressure. This project uses a small inexpensive digital pressure sensor from Honeywell with a Raspberry Pi to monitor and send alerts for a radon mitigation fan loss of vacuum. The alerts can be an email or SMS message sent via email. Feel free to contribute with custom alert options such as MQTT, IFTT, etc.  RadonMaster™ logs the pressure sensor readings to a Comma Separated Variable (CSV) file that can be plotted using MatPlobLib or in a spreadsheet. The program is written in Python and can be ported to additional platforms, but the RPI is one of the most common platforms.
+The Raspberry Pi looked like an ideal platform to monitor the radon mitigation pressure. This project uses a small inexpensive digital pressure sensor from Honeywell with a Raspberry Pi to monitor and send alerts for a radon mitigation fan loss of vacuum. The alerts can be an email or SMS message sent via email. Feel free to contribute with custom alert options such as MQTT, IFTT, etc.  RadonMaster™ logs the pressure sensor readings to a Comma Separated Variable (CSV) file, MQTT, or InfluxDB so that the data can be plotted using MatPlobLib, in a spreadsheet, or any tool that supports MQTT or InfluxDB. The program is written in Python and can be ported to additional platforms, but the RPI is one of the most common platforms.
 
 This program can connect to the AirThings WavePlus using the Raspberry Pi’s Bluetooth. The program will include the WavePlus sensor data in the radonMaster™ status message (daily, weekly, or monthly) and send an alert when one of the sensors changes outside of brackets defined in the thresholds of “wave.py” or custom alerts.  The default thresholds were set to be similar to recommendations at the end of 2020. The program will read and log all of the sensors from the WavePlus which include:
 - Radon short-term average
@@ -239,14 +239,17 @@ If alerts are enabled, you can choose to throttle the alerts. The interval can b
     # Wait this long before sending another email - seconds
     minIntervalBtwAlerts = 3600  
 
-# Future Alert and Status Options
-Please feel free to fork and contribute or provide feedback on priorities and features
+# Current as well as Future Alert and Status Options
+Please feel free to fork and contribute or provide feedback on priorities and features. The file pubScribe.py provides the ability to configure data logging, status, and alerts. Selection of options is done in pubScribe.py by uncommenting the ENABLE lines.
 
+- Comma Separated Variable (CSV): supported
+- Email: supported
 - Relay / buzzer
-- MQTT
+- MQTT: supported
   - OpenHab
   - Home Assistant
   - Domoticz
+- InfluxDB: supported
 - IFTT
 - PubNub
 - Twilio
