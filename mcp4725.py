@@ -13,7 +13,7 @@ REVISION HISTORY
 
 
 OVERVIEW:
-    Write to mcp4275 or mcp4276 DAC
+    Write to the Microchip MCP4275 or MCP4276 DAC
 
 LICENSE:
     This program code and documentation are for personal private use only. 
@@ -39,9 +39,13 @@ GENERAL INFORMATION:
 
 
 RASPBERRY PI I2C PINS to DAC (2-wires plus power and ground):
-  RPI 40-pin           DAC
-  Pin  3 (SDA1)      = Pin 5 (SDA)
-  Pin  5 (SCL1)      = Pin 6 (SCL)
+  RPI 40-pin           MCP4275 DAC in 6-pin SOT-23-6
+                     = Pin 1 Vout
+                     = Pin 2 Vss (ground reference)
+                     = Pin 3 Vdd (2.7V - 5.5V)
+  Pin  3 (SDA1)      = Pin 4 (SDA)
+  Pin  5 (SCL1)      = Pin 5 (SCL)
+                     = Pin 6 A0 (I2C address bit)
 
 PACKAGES REQUIRED:
   sudo apt-get install python3-smbus    # I2C 
@@ -51,6 +55,10 @@ Use RASPI Config to enable I2C bus.
 Commands to display I2C addresses in use from connected hardware on Raspberry PI OS:
   sudo i2cdetect -y 0
   sudo i2cdetect -y 1
+
+DAC command:
+    Supports fast write, not to EEPROM (See data sheet Figure 6-1: Command type C2, C1 = 0, 0)
+    Power down bits are zero for normal mode (See data sheet Table 5-2: PD1, PD0 = 0, 0)
 
 """
 
@@ -87,6 +95,12 @@ class mcp4275 :
 
         try :
             register = 0x00
+            if 1 :
+                # Documentation appears that register contains upper nibble (4-bits) of DAC value
+                # Otherwise, try without putting upper nibble in register
+                register = (value & 0x00FF) >> 8
+                value = value & 0x00FF
+
             self.bus.write_i2c_block_data(self.i2c_address, register, value)
         except :
             pass

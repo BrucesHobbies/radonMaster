@@ -1,15 +1,18 @@
-import time
-import smtplib
+#!/usr/bin/env python
 
 """
-Copyright(C) 2020, BrucesHobbies
+Copyright(C) 2021, BrucesHobbies
 All Rights Reserved
 
 AUTHOR: Bruce
-DATE: 12/1/2020
+DATE: 12/08/2020
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
-  yyyy/mm/dd  --------------- -------------------------------------
+  yyyy/mm/dd  --------------- -----------------------------------------
+  2021/01/25  BrucesHobbies   Added #!, moved imports to after comments
+  2021/03/01  BrucesHobbies   Included cfgData.py
+                              Removed key from cfg.json
+                              Changed key generation
 
 LICENSE:
     This program code and documentation are for personal private use only. 
@@ -52,33 +55,67 @@ GENERAL INFO
   smtp.verizon.net (port 465 SSL)
 """
 
-# SMTPSERVER = 'smtp.gmail.com'
+import subprocess
+import time
+import smtplib
+from cryptography.fernet import Fernet
+import base64
+
+try:
+    import json
+except ImportError:
+    try:
+        import simplejson as json
+    except ImportError:
+        print("Error: import json module failed")
+        sys.exit()
+
+encoding = 'utf-8'
+
+
+#
+# Email server configuration
+#
+
 SMTPSERVERTLSPORT = 'smtp.gmail.com:587'
 
-# SMTPTLSPORT = 587		# For TLS, newer than SSL
-# SMTPSSLPORT = 465		# For SSL
+# SMTPSERVER = 'smtp.gmail.com'
+# SMTPTLSPORT = 587                   # For TLS, newer than SSL
+# SMTPSSLPORT = 465                   # For SSL
+
+
+FROM_USERID   = 'FROM_USERID'
+STATUS_USERID = 'STATUS_USERID'
+ALERT_USERID  = 'ALERT_USERID'
 
 
 #
 # --- Send text message ---
 #
-def send_mail(userID, passwd, to, subject, text): 
-    print("Sending email on " + time.strftime("%a, %d %b %Y %H:%M:%S \n", time.localtime()))
-    msg = 'To: ' + to + '\nFrom: ' + userID + '\nSubject: ' + subject + '\n\n' + text + '\n\n'
-    print(msg)
+def send_mail(to_UserID_key, subj, msg) : 
 
-    if (userID!="") and (passwd!="") and (to!="") :
+    from_UserID = cfgData[FROM_USERID]
+    passwd = password_decrypt(cfgData['token'])
+    to_UserID = cfgData[to_UserID_key]
+
+    print("Sending email on " + time.strftime("%a, %d %b %Y %H:%M:%S \n", time.localtime()))
+
+    fullMsg = 'To: ' + to_UserID + '\nFrom: ' + from_UserID + '\nSubject: ' + subj + '\n\n' + msg + '\n\n'
+    print(fullMsg)
+
+
+    if (from_UserID!="") and (passwd!="") and (to_UserID!="") :
         try:
             server = smtplib.SMTP(SMTPSERVERTLSPORT)
             server.starttls()
-            server.login(userID, passwd)
-            server.sendmail(userID, to, msg)
+            server.login(from_UserID, passwd)
+            server.sendmail(from_UserID, to_UserID, fullMsg)
             
             """ SSL alternative instead of TLS...
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL(SMTPSERVER, SMTPSSLPORT, context=context) as server:
-                server.login(userID, passwd)
-                server.sendmail(userID, to, msg)
+                server.login(from_UserID, passwd)
+                server.sendmail(from_UserID, to_UserID, fullMsg)
             """
 
             print("--- End of message ---")
@@ -93,16 +130,86 @@ def send_mail(userID, passwd, to, subject, text):
         print("No userids and a password - local message only!\n")
 
 
-if __name__ == '__main__':
-    # User specific settings
-    GMAIL_USER= 'userid@gmail.com'
-    GMAIL_PASS= 'your_device_email_password'
 
-    # Addressee
-    TO= 'email@something.com'
+
+cfgData = {
+    u"token": "",
+    u"FROM_USERID": "",
+    u"ALERT_USERID": "",
+    u"STATUS_USERID": ""
+}
+
+
+fernetKey = []
+
+
+def password_key() :
+     global fernetKey
+     keyGen = bytes(subprocess.getoutput('cat /etc/machine-id'),'UTF-8')
+     fernetKey = Fernet(base64.urlsafe_b64encode(keyGen))
+
+
+def password_encrypt(phrase) :
+    token = fernetKey.encrypt(bytes(phrase,encoding))
+    return token.decode(encoding)
+
+
+def password_decrypt(token) :
+    phrase = fernetKey.decrypt(bytes(token,encoding))
+    return phrase.decode(encoding)
+
+
+def loadJsonFile(cfgDataFileName = 'emailCfg.json') :
+    global cfgData
+
+    password_key()
+
+    try:
+        with open(cfgDataFileName, 'r') as cfgDataFile:
+            cfgData_temp = json.load(cfgDataFile)
+            for key in cfgData:  # If file loaded, replace default values in cfgData with values from file
+                if key in cfgData_temp:
+                   cfgData[key] = cfgData_temp[key]
+
+    # If file does not exist, it will be created using defaults.
+    except IOError:  
+        print("Enter sender's device email userid (sending_userid@gmail.com):")    # Sender's email userid
+        cfgData[FROM_USERID] = input()
+
+        print("Enter password: ")
+        cfgData['token'] = password_encrypt(input())
+
+        print("Enter recipient's email userid (recipient_userid@something.com) for alerts:")  # Recepient's email userid
+        cfgData[ALERT_USERID] = input()
+
+        print("Enter recipient's email userid (recipient_userid@something.com) for status:")  # Recepient's email userid
+        cfgData[STATUS_USERID] = input()
+
+        with open(cfgDataFileName, 'w') as cfgDataFile:
+            json.dump(cfgData, cfgDataFile)
+
+    return
+
+
+#
+# Test and debug
+#
+if __name__ == '__main__' :
+
+    loadJsonFile('emailCfg.json')
+    print("")
+    print("TOKEN         : " + cfgData['token'])
+    print("")
+    print("USERID        : " + cfgData[FROM_USERID])
+    print("PW            : " + password_decrypt(cfgData['token']))
+    print("ALERT_USERID  : " + cfgData['ALERT_USERID'])
+    print("STATUS_USERID : " + cfgData[STATUS_USERID])
+
+    SUBJECT = 'Subj of Status'
+    MSG = 'Status Message.'
+    send_mail(STATUS_USERID, SUBJECT, MSG)
+
     SUBJECT = 'Subj of Alert!'
-    TEXT = 'Alert Message!'
+    MSG = 'Alert Message!'
+    send_mail(ALERT_USERID, SUBJECT, MSG)
 
-    send_mail(GMAIL_USER, GMAIL_PASS, TO, SUBJECT, TEXT)
-    time.sleep(1)
-    print("Done.")

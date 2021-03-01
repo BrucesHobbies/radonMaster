@@ -9,8 +9,7 @@ DATE: 12/1/2020
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
-  2020/12/05  BrucesHobbies   Added WavePlus alerts and logging over bluetooth
-
+  2021/03/01  BrucesHobbies   Updated to pubScripe.py
 
 OVERVIEW:
     RadonMaster(TM) is a system to montior a radon mitigation fan
@@ -52,18 +51,18 @@ import subprocess
 
 # RadonMaster imports
 import sensorHnyAbp
-import sendEmail
-import cfgData
+import pubScribe
 
-AIRTHINGS = 0      # Default = 0, which is WavePlus bluetooth monitoring and logging disabled
+#
+AIRTHINGS = 0      # Default = 0, which is monitoring and logging disabled
 if AIRTHINGS :
-    import wave    # Added 12/5/2020
+    import wave    # Added 12/4/2020
 
 #
 # --- User pressure/vacuum sensor configuration parameters ---
 #
-abp = sensorHnyAbp.SensorHnyAbp("001PDS")    # -1 to +1 psi diff SPI often found in DIP package
-# abp = sensorHnyAbp.SensorHnyAbp("060MG2")    # 0 to 60 mbar gage I2C but often found in surface mount package
+# abp = sensorHnyAbp.SensorHnyAbp("001PDS")    # -1 to +1 psi diff SPI often found in DIP package
+abp = sensorHnyAbp.SensorHnyAbp("060MG2")    # 0 to 60 mbar gage I2C but often found in surface mount package
 
 tInterval = 1	       # time interval in seconds between fan vacuum measurements (default: 1, 
                        #     possible values: 1, 2, 3, 4, 5, 6, 10, 15, 20, and 30).
@@ -87,7 +86,10 @@ pLowPressAlert = 0.5    # Absolute value in case auto calibration is off
 #
 #
 
-alertsEnabled  = 1              # non zero enables sending of email messages
+pressAlertsEnabled = 1          # non zero enables sending of email messages
+waveAlertsEnabled = 0           # non zero enables sending of alerts for Wave Plus readings
+
+statusMsgEnabled = 1
 statusMsgHHMM  = [12, 0]        # Status message time to send [hh, mm]
 statusInterval = 1              # Interval in days (0=use DOW, 1=every day, 2=every other day, 7=weekly, etc.)
 statusDOM      = 0              # Day of month if non-zero
@@ -199,22 +201,6 @@ def formatLocalTime() :
     return time.strftime("%a, %Y-%b-%d, %H:%M:%S", time.localtime())	#%b=abbr mo, %B=mo name, %m=m as decimal
 
 
-#
-# Append interval data to CSV file
-#
-""" MS-Excel UNIX seconds to date and time
-  date from seconds : =FLOOR(A2/86400,1)+DATE(1970,1,1)
-  HH:MM from seconds: =MOD(A2,86400)/86400
-"""
-def appendCsv(avgVacuum) :
-    # s = formatLocalTime() + "," + str(round(avgVacuum,2)) + "\n"          # See formatLocalTime()
-    s = str(round(time.time())) + "," + str(round(avgVacuum,2)) + "\n"    # Time in seconds
-
-    # write data to csv file
-    csvFile = open("radonMaster.csv", "a")
-    csvFile.write(s)
-    csvFile.close()
-
 
 #
 # Calibration algorithm and alert check
@@ -235,7 +221,7 @@ def radonAlg(sensorAvg) :
     else :
         if (sensorAvg < (pFiltered-pDeltaLowSide)) or (sensorAvg > (pFiltered+pDeltaLowSide)) :
             s = "Alert: vacuum delta."
-        elif (sensorAvg < pLowPressAlert) :
+        elif (abs(sensorAvg) < pLowPressAlert) :
             s = "Alert: vacuum less than 0.5 inch water column."
         else :
             s = ""    # Nominal: no alert
@@ -258,6 +244,9 @@ def startTimer():
 # Timer
 #
 stopFlag = 0
+firstTimeAirthings = 1
+lastPressMsg = ""
+lastWaveMsg = ""
 
 def myTimer() :
     global timer, count, sensorSum, lastReadTime, statusIntervalCntDn, lastAlertTime
@@ -278,25 +267,33 @@ def myTimer() :
         sensorSum = 0
         count = 0
 
-        appendCsv(sensorAvg)
-
+        # Append interval data to CSV file
+        topic = "RadonMaster/PresSensor"
+        pubScribe.pubRecord(pubScribe.CSV_FILE, topic, str(round(sensorAvg,2)), "Inches w.c.")
+        """ MS-Excel UNIX seconds to date and time
+        date from seconds : =FLOOR(A2/86400,1)+DATE(1970,1,1)
+        HH:MM from seconds: =MOD(A2,86400)/86400
+        """
+ 
         sAlg = radonAlg(sensorAvg)
 
         lastPressMsg = '{0:s} Vacuum: {1:7.2f} in.wc'.format(formatLocalTime(), round(sensorAvg, 2))
         print(lastPressMsg + " " + sAlg)
 
         if not( sAlg=="" or sAlg[:3]=="Cal" ) :
-            # alertMsg = "Alert " + formatLocalTime() + " " + sAlg
             alertMsg = "Alert " + lastPressMsg
-            print(alertMsg)
 
-            if alertsEnabled :
+            if pressAlertsEnabled :
                 tsec = time.time()
                 if ((tsec-lastAlertTime) > minIntervalBtwAlerts) :
                     lastAlertTime = tsec
-                    sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
-                            cfgData.cfgData_get("TO"), "RadonMaster Fan Alert", alertMsg)
+                    topic = "RadonMaster/Alert"
+                    pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, alertMsg)
 
+            else :
+                print(alertMsg)
+
+    #
     if AIRTHINGS and (not (t.minute % 15)) and (t.second==30) :
         if firstTimeAirthings :
             firstTimeAirthings = 0
@@ -307,18 +304,20 @@ def myTimer() :
             print(lastWaveMsg)
 
             if alert :
-                if alertsEnabled :
-                    sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
-                            cfgData.cfgData_get("TO"), "RadonMaster WavePlus Alert", lastWaveMsg + "\n" + alertMsg)
+                if waveAlertsEnabled :
+                    topic = "RadonMaster/Alert"
+                    alertMsg = "RadonMaster WavePlus Alert", lastWaveMsg + "\n" + alertMsg
+                    pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, alertMsg)
                 else :
                     print("=== ALERT! ===")
                     print(alertMsg)
 
         except :
             print("Exception with Bluepy Airthings Wave...")
+        
 
     # Send status message
-    if (alertsEnabled and t.hour==statusMsgHHMM[0] and t.minute==statusMsgHHMM[1] and t.second==0) :
+    if (statusMsgEnabled and t.hour==statusMsgHHMM[0] and t.minute==statusMsgHHMM[1] and t.second==0) :
         sendStatus = 0
 
         # Send status message every n days, after sending first status message
@@ -340,39 +339,43 @@ def myTimer() :
         if sendStatus :
             s = "Reporting at " + time.strftime("%a, %d %b %Y %H:%M:%S \n", time.localtime())
             s = s + lastPressMsg + "\n" + lastWaveMsg
-
-            sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
-                cfgData.cfgData_get("TO"), "RadonMaster Status", s)
+            topic = "RadonMaster/Status"
+            pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, s)
     
+
     if not stopFlag :
         t = datetime.datetime.now()
         Timer(tInterval - t.microsecond/1000000., myTimer).start()	# every tInterval seconds
 
-    
+
+
 #
 # Main
 #
+
 if __name__ == '__main__':
     # clearWindow()
-    print("Press CTRL+C to exit...\n")
+    print("\nPress CTRL+C to exit...\n")    ##
 
     paramCheck()
     
     # Display sensor results on program startup 
     status, result, tempC = abp.readAbpStatusTemp()
+
     # change sign of result to convert pressure to vacuum
     s = 'Status: {0:d}  Vacuum: {1:7.3f} {2:s} {3:7.2f} in.wc {4:5.1f} degF\n'.format(
         status, round(-result,3), abp.PRES_UNITS, round(abp.pres2inwc(-result),2), round(abp.c2f(tempC),1))
     print(s)
 
-    if alertsEnabled :
-        cfgData.loadJsonFile()
-        sendEmail.send_mail(cfgData.cfgData_get("GMAIL_USER"), cfgData.password_return(), 
-            cfgData.cfgData_get("TO"), "RadonMaster Status", "Program start: " + formatLocalTime() + "\n" + s)
+    pubScribe.connectPubScribe()
+
+    if statusMsgEnabled :
+        topic = "RadonMaster/Status"
+        pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, "Program start\n" + s)
 
     startTimer()
 
-    print("First averaged set of measurement will display in a few minutes...")
+    print("First averaged set of measurement will display in a few minutes...\n") # chg 2020-12-03
 
     try:
         while True:
@@ -382,4 +385,6 @@ if __name__ == '__main__':
         #timer.cancel()
         stopFlag = 1
         time.sleep(tInterval+1)
-        sys.exit(" Exit")
+
+    pubScribe.disconnectPubScribe()
+

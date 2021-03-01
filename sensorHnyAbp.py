@@ -9,6 +9,7 @@ DATE: 12/1/2020
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
+  2021/03/01  BrucesHobbies   Fixed exception logic in readAbp()'s
 
 
 OVERVIEW:
@@ -242,44 +243,55 @@ class SensorHnyAbp :
 
     # Reads the I2C pressure sensor returning pressure only
     def readAbp(self):                           
-        if self.i2c_address :
-            result = self.bus.read_i2c_block_data(self.i2c_address, 0, 2)  # send address with read bit and returns 2 bytes
-        else :
-            result = self.spi.readbytes(2)
+        try :
+            if self.i2c_address :
+                result = self.bus.read_i2c_block_data(self.i2c_address, 0, 2)  # send address with read bit and returns 2 bytes
+            else :
+                result = self.spi.readbytes(2)
 
-        # status = (result[0] & 0xC0) >> 6
+            pressure = self.__cnts2pres(result)
 
-        pressure = self.__cnts2pres(result)
+        except :
+            pressure = None
+
 
         return pressure
 
 
     # Reads the I2C pressure sensor and also returns status
-    def readAbpStatus(self):                           
-        if self.i2c_address :
-            result = self.bus.read_i2c_block_data(self.i2c_address, 0, 2)  # send address with read bit and returns 2 bytes
-        else :
-            result = self.spi.readbytes(2)
+    def readAbpStatus(self):
+        try :
+            if self.i2c_address :
+                result = self.bus.read_i2c_block_data(self.i2c_address, 0, 2)  # send address with read bit and returns 2 bytes
+            else :
+                result = self.spi.readbytes(2)
 
-        status = (result[0] & 0xC0) >> 6
+            status = (result[0] & 0xC0) >> 6
+            pressure = self.__cnts2pres(result)
 
-        pressure = self.__cnts2pres(result)
+        except :
+            status = None
+            pressure = None
 
         return status, pressure
 
 
     # Reads the I2C pressure sensor and also returns status and temp
     def readAbpStatusTemp(self):
-        if self.i2c_address :
-            result = self.bus.read_i2c_block_data(self.i2c_address, 0, 4)  # send address with read bit and returns 4 bytes
-        else :
-            result = self.spi.readbytes(4)
+        try :
+            if self.i2c_address :
+                result = self.bus.read_i2c_block_data(self.i2c_address, 0, 4)  # send address with read bit and returns 4 bytes
+            else :
+                result = self.spi.readbytes(4)
 
-        status = (result[0] & 0xC0) >> 6
+            status = (result[0] & 0xC0) >> 6
+            pressure = self.__cnts2pres(result)
+            tempC = self.__cnts2tempC(result)
 
-        pressure = self.__cnts2pres(result)
-
-        tempC = self.__cnts2tempC(result)
+        except :
+            status = None
+            pressure = None
+            tempC = None
 
         return status, pressure, tempC
 

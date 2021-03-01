@@ -14,6 +14,7 @@ DATE: 12/1/2020
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
+  2021/03/01  BrucesHobbies   Modified for pubScribe.py
 
 
 OVERVIEW:
@@ -55,6 +56,8 @@ import sys
 import time
 import os
 
+import pubScribe
+
 
 SerialNumber = 0
 
@@ -63,7 +66,7 @@ SamplePeriod = 60          # 60 Seconds, only used when run as main()
 MODE='terminal'
 
 LOGGING_ENABLED = 1
-wpLogFilename   = "waveLogFile.csv"
+# wpLogFilename   = "waveLogFile.csv"
 
 #
 # find_wave and read_waveplus both require bluepy, SerialNumber==0 indicates bluepy lib or wave not found
@@ -243,6 +246,9 @@ def sensor2StringUnits(sensors) :
     return data
 
 
+hdrRow = ""
+
+
 #
 # Log wave data to csv file
 #
@@ -250,6 +256,7 @@ def write2Csv(s) :
     csvFile = open(wpLogFilename, "a")
     csvFile.write(s + "\n")
     csvFile.close()
+
 
 
 def formatLocalTime() :
@@ -262,9 +269,11 @@ def formatLocalTime() :
 # Header row for log file or display
 #
 def writeHeaders() :
+    global hdrRow
+
     sensors = read_waveplus2c.Sensors()
 
-    hdrRow = "Time,Radon ST avg (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG)) \
+    hdrRow = "Radon ST avg (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG)) \
                 + "),Radon LT avg (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG)) \
                 + "),VOC level (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_VOC_LVL)) \
                 + "),CO2 level (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_CO2_LVL)) \
@@ -273,11 +282,14 @@ def writeHeaders() :
                 + "),Pressure (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE)) + ")"
 
     if MODE=='terminal' :
-        print(hdrRow[5:])
+        # print(hdrRow[5:])
+        print(hdrRow)
 
+    """
     if LOGGING_ENABLED and not os.path.isfile(wpLogFilename) :
         # If csv log file does not exist, write header
         write2Csv(hdrRow)
+    """
 
 
 #
@@ -312,18 +324,21 @@ def readAirthings() :
         pressure     = sensors.getValue(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE)
         CO2_lvl      = sensors.getValue(read_waveplus2c.SENSOR_IDX_CO2_LVL)
         VOC_lvl      = sensors.getValue(read_waveplus2c.SENSOR_IDX_VOC_LVL)
-        
 
         if LOGGING_ENABLED :
             data = [radon_st_avg, radon_lt_avg, VOC_lvl, CO2_lvl, temperature, humidity, pressure]
-            rowStr = str(round(time.time())) + ","
-            for item in data :
-                rowStr = rowStr + str(item) + ","
-            write2Csv(rowStr[:-1])
+            """
+                rowStr = str(round(time.time())) + ","
+                for item in data :
+                    rowStr = rowStr + str(item) + ","
+                write2Csv(rowStr[:-1])
+            """
+            topic = "RadonMaster/WavePlus"
+            pubScribe.pubRecord(pubScribe.CSV_FILE, topic, data, hdrRow)
         
-        results = formatLocalTime() + " " + str(sensor2StringUnits(sensors))
+            results = formatLocalTime() + " " + str(sensor2StringUnits(sensors))
 
-        alert, s = checkAlerts(radon_st_avg, VOC_lvl, CO2_lvl, temperature, humidity)
+            alert, s = checkAlerts(radon_st_avg, VOC_lvl, CO2_lvl, temperature, humidity)
 
     except :
         print("Exception!!!")
@@ -339,6 +354,8 @@ if __name__ == '__main__':
         print("Device serial number: %s" %(SerialNumber))
         print("Sample Period: %u seconds" %(SamplePeriod))
         print("")
+
+    pubScribe.connectPubScribe()
 
     writeHeaders()
 
@@ -356,4 +373,6 @@ if __name__ == '__main__':
             time.sleep(SamplePeriod)
             
     except KeyboardInterrupt:
-        sys.exit(" Exit")
+        print(" Keyboard interrupt caught.")
+
+    pubScribe.disconnectPubScribe()
