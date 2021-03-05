@@ -41,7 +41,7 @@ GENERAL INFORMATION:
 
 
 RASPBERRY PI I2C PINS to DAC (2-wires plus power and ground):
-  RPI 40-pin           MCP4275 DAC in 6-pin SOT-23-6
+  RPI 40-pin           MCP4725 DAC in 6-pin SOT-23-6
                      = Pin 1 Vout
                      = Pin 2 Vss (ground reference)
                      = Pin 3 Vdd (2.7V - 5.5V)
@@ -69,7 +69,7 @@ import time
 import smbus    # I2C support
 
 
-class mcp4275 :
+class mcp4725 :
     def __init__(self) :
         self.OUTPUT_MAX = 4095    # 2^12-1 counts
 
@@ -77,13 +77,9 @@ class mcp4275 :
         self.i2c_address = 0x60
         print("mcp4275 i2c address: " + hex(self.i2c_address))
 
-        # initialize bus
-        i2c_ch = 1                     # i2c channel
-        self.bus=smbus.SMBus(i2c_ch)   # Initialize I2C (SMBus)
-
 
     def __del__(self) :
-        self.bus.close()
+        return
 
 
     def writeDAC(self, value):
@@ -117,6 +113,34 @@ class mcp4275 :
 
         return
 
+    def alg(self, data):
+        print("Alg data: ", data)
+
+        #
+        # Insert algorithm here...
+        # Hypothetical example. Not tested.
+        #
+
+        fanMin = 0.5
+        fanMax = 0.9
+        radonMin = 40
+        RadonMax = 150
+        SF = (fanMax - fanMin) / (radonMax - radonMin)
+
+        fanValue = fanMin + (data[0] - radonMin) * SF
+
+        if fanValue > fanMax :
+            fanValue = fanMax
+        elif fanValue < fanMin :
+            fanValue = fanMin
+
+        print("FanValue: ", fanValue)
+
+        self.writeDAC(fanValue)
+
+        return
+
+
 # end class
 
 
@@ -125,7 +149,11 @@ if __name__ == '__main__':
     print("Press CTRL+C to exit...")
 
     try:
-        dac = mcp4275()
+        dac = mcp4725()
+
+        # initialize bus
+        i2c_ch = 1                    # i2c channel
+        dac.bus=smbus.SMBus(i2c_ch)   # Initialize I2C (SMBus)
 
         while True:
             print("Enter value (0.0 - 1.0): ")
@@ -134,3 +162,5 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print(" Keyboard interrupt caught, exiting.")
+
+    dac.bus.close()

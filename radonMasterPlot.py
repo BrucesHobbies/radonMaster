@@ -9,6 +9,8 @@ DATE: 12/5/2020
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
+  2021/03/01  BrucesHobbies   Revised default log file names
+  2021/03/05  BrucesHobbies   Updated for pubScribe
 
 
 OVERVIEW:
@@ -53,107 +55,108 @@ import csv
 #
 # Read in a comma seperated variable file. Assumes a header row exists.
 #   Time series with time in seconds in first column.
+#   Ignore text string with date/time from second column
+#   data is columns [2:]
 #
 def importCsv(filename) :
     print("Reading " + filename)
 
     with open(filename, 'r') as csvfile :
-        data = list(csv.reader(csvfile))
+        csvData = list(csv.reader(csvfile))
 
-    header = data[0]
-    print(header)
+    hdr = csvData[0]
+    print(hdr)
 
-    a = np.array(data[1:], dtype=np.float)
+    tStamp = []
+    for row in csvData[1:] :
+        tStamp.append(float(row[0]))
 
-    print("Elements: ", a.size)
-    print("Rows    : ", len(a[:,0]))
-    print("Cols    : ", len(a[0,:]))
+    data = {name : [] for name in hdr[2:]}
+    # print(data)
 
-    return header, a
+    for row in csvData[1:] :
+        for idx in range(2,len(hdr)) :
+            n = float(row[idx])
+            if n == -99 :
+                n = np.nan
+            data[hdr[idx]].append(n)
+
+    return hdr[2:], tStamp, data
+
 
 #
-# Plot Short-Term and Long-Term radon levels
-#   thresholds(y_value,"label")
+# Plot single or multiple variables {"key":[]} on common subplot
 #
-def plotRadon(thresholds) :
+def plotMultiVar(tStamp, data, title) :
+
+    t = [datetime.datetime.fromtimestamp(ts) for ts in tStamp]
+
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 1, 1)
 
-    ax1.plot(t, a[:,1], 'b', label='ST')
-    ax1.plot(t, a[:,2], 'r', label='LT')
-    # ax1.plot(t, a[:,1], 'b', marker='d', label='ST')
-    # ax1.plot(t, a[:,2], 'r', marker='d', label='LT')
-
-    for item in thresholds :
-        ax1.plot([t[0], t[len(t)-1]], [item[0], item[0]], item[1])
-
-    ax1.set_title("Radon")
-    ax1.set_xlabel('Time')
-    ax1.set_ylabel(header[1][9:])
-    ax1.legend(loc='upper right', shadow=True)
-
-    ax1.grid(which='both')
-    plt.gcf().autofmt_xdate()    # slant labels
-    dateFmt = mdates.DateFormatter('%Y-%m-%d %H:%M')
-    plt.gca().xaxis.set_major_formatter(dateFmt)
-
-    plt.show(block=False)
-
-#
-# Plot VOC, CO2, Temperature, Relative, Humidity, and air pressure
-#
-def plotSingle(var, ylabel, title) :
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 1, 1)
-
-    ax1.plot(t, var)
-    # ax1.plot(t, var, marker='d')
+    for item in data :
+        # print(item)
+        ax1.plot(t, data[item], label=item)
+        # ax1.plot(t, data[item], marker='d', label=item)
 
     ax1.set_title(title)
-    ax1.set_xlabel('Time')
-    ax1.set_ylabel(ylabel)
-    
+
+    if len(data) > 1 :
+        ax1.legend(loc='upper right', shadow=True)
+    else :
+        ax1.set_ylabel(item)
+
     ax1.grid(which='both')
+
     plt.gcf().autofmt_xdate()    # slant labels
     dateFmt = mdates.DateFormatter('%Y-%m-%d %H:%M')
     plt.gca().xaxis.set_major_formatter(dateFmt)
 
-    plt.show(block=False)
+
+#
+# Plot single variable {"item":[]}
+#
+def plotSingleVar(tStamp, data, title, item) :
+
+    t = [datetime.datetime.fromtimestamp(ts) for ts in tStamp]
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 1, 1)
+
+    ax1.plot(t, data[item], label=item)
+    # ax1.plot(t, data[item], marker='d', label=item)
+
+    ax1.set_title(title)
+    ax1.set_ylabel(item)
+
+    ax1.grid(which='both')
+
+    plt.gcf().autofmt_xdate()    # slant labels
+    dateFmt = mdates.DateFormatter('%Y-%m-%d %H:%M')
+    plt.gca().xaxis.set_major_formatter(dateFmt)
+
 
 #
 # Plot two files
 #
 if __name__ == "__main__" :
 
-    # --- Radon Short-term and Long-term ---
-    #  (time in column 0, data in columns 1 - 2)
-    # filename = "radonLogFile.csv"
-    filename = "waveLogFile.csv"
-    header, a = importCsv(filename)
+    # --- WavePlus data ---
+    #  (time in column 0, data in columns 2:)
+    filename = "RadonMaster_WavePlus.csv"
+    header, tStamp, data = importCsv(filename)
 
-    tstamp = []
-    for item in a[:,0] :
-        tstamp.append(item)
-    t = [datetime.datetime.fromtimestamp(ts) for ts in tstamp]
-
-    plotRadon([(1.3, 'g--'),(2.7, 'y--'),(4.0, 'r--')])
-
-    # Plot remaining data from WavePlus (columns 4 - 8)
-    for col in range(3, len(header)-1) :
-        plotSingle(a[:,col],header[col],header[col])
-
+    for item in data :
+        plotSingleVar(tStamp, data, filename[:-4], item)
 
     # --- Mitigation fan pressure ---
-    filename = "radonMaster.csv"
-    header, a = importCsv(filename)
+    filename = "RadonMaster_PresSensor.csv"
+    header, tStamp, data = importCsv(filename)
 
-    tstamp = []
-    for item in a[:,0] :
-        tstamp.append(item)
-    t = [datetime.datetime.fromtimestamp(ts) for ts in tstamp]
-
-    plotSingle(a[:,1],'Inches W.C.','Mitigation Fan Vacuum')
+    plotMultiVar(tStamp, data, 'Mitigation Fan Vacuum')
 
     # Pause to close plots
+    plt.show(False)    # Blocks, user must close plot window
+    print("")
     input("Press [enter] key to close plots...")
     print("Done...")

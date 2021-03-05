@@ -58,6 +58,15 @@ import os
 
 import pubScribe
 
+MCP4725_ENABLED = 0
+
+if MCP4725_ENABLED :
+    import mcp4725
+    dac = mcp4725.mcp4725()
+    # initialize bus
+    # i2c_ch = 1                    # i2c channel
+    # dac.bus=smbus.SMBus(i2c_ch)   # Initialize I2C (SMBus)
+
 
 SerialNumber = 0
 
@@ -66,7 +75,6 @@ SamplePeriod = 60          # 60 Seconds, only used when run as main()
 MODE='terminal'
 
 LOGGING_ENABLED = 1
-# wpLogFilename   = "waveLogFile.csv"
 
 #
 # find_wave and read_waveplus both require bluepy, SerialNumber==0 indicates bluepy lib or wave not found
@@ -285,11 +293,6 @@ def writeHeaders() :
         # print(hdrRow[5:])
         print(hdrRow)
 
-    """
-    if LOGGING_ENABLED and not os.path.isfile(wpLogFilename) :
-        # If csv log file does not exist, write header
-        write2Csv(hdrRow)
-    """
 
 
 #
@@ -327,18 +330,16 @@ def readAirthings() :
 
         if LOGGING_ENABLED :
             data = [radon_st_avg, radon_lt_avg, VOC_lvl, CO2_lvl, temperature, humidity, pressure]
-            """
-                rowStr = str(round(time.time())) + ","
-                for item in data :
-                    rowStr = rowStr + str(item) + ","
-                write2Csv(rowStr[:-1])
-            """
             topic = "RadonMaster/WavePlus"
             pubScribe.pubRecord(pubScribe.CSV_FILE, topic, data, hdrRow)
         
             results = formatLocalTime() + " " + str(sensor2StringUnits(sensors))
 
             alert, s = checkAlerts(radon_st_avg, VOC_lvl, CO2_lvl, temperature, humidity)
+
+        if MCP4725_ENABLED :
+            dac.alg(data)
+
 
     except :
         print("Exception!!!")
