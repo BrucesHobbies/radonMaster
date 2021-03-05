@@ -8,8 +8,10 @@ AUTHOR: Bruce
 DATE: 02/28/2021
 REVISION HISTORY
   DATE        AUTHOR          CHANGES
-  yyyy/mm/dd  --------------- -------------------------------------
-
+  yyyy/mm/dd  --------------- ---------------------------------------
+  2021/03/05  BrucesHobbies   Updated i2c address, register, and data
+                              in writeDAC() based on new information
+                              that supersedes data sheet
 
 
 OVERVIEW:
@@ -71,8 +73,8 @@ class mcp4275 :
     def __init__(self) :
         self.OUTPUT_MAX = 4095    # 2^12-1 counts
 
-        # I2C address is 0x62 or 0x63
-        self.i2c_address = 0x62
+        # I2C address is not 0x62 or 0x63 per the data sheet, but 0x60
+        self.i2c_address = 0x60
         print("mcp4275 i2c address: " + hex(self.i2c_address))
 
         # initialize bus
@@ -94,14 +96,22 @@ class mcp4275 :
         value = int(round(value * self.OUTPUT_MAX))
 
         try :
-            register = 0x00
+            register = 0x41
+            # Documentation appears that register contains upper nibble (4-bits) of DAC value
+            # Otherwise, try the alternate approach
             if 1 :
-                # Documentation appears that register contains upper nibble (4-bits) of DAC value
-                # Otherwise, try without putting upper nibble in register
-                register = (value & 0x00FF) >> 8
-                value = value & 0x00FF
+                # From example, looks like only 8 bits
+                dataUpper = value >> 4
+                dataLower = (value&15) << 4
+            else :
+                # 12-bits
+                dataUpper = (value & 0x0F00) >> 8
+                dataLower = (value & 0x00FF)
 
-            self.bus.write_i2c_block_data(self.i2c_address, register, value)
+            data = [dataUpper, dataLower]
+
+            self.bus.write_i2c_block_data(self.i2c_address, register, data)
+
         except :
             pass
 
