@@ -338,7 +338,11 @@ def readAirthings() :
             alert, s = checkAlerts(radon_st_avg, VOC_lvl, CO2_lvl, temperature, humidity)
 
         if MCP4725_ENABLED :
-            dac.alg(data)
+            fanValue = dac.alg(data)
+            # print("FanValue: ", fanValue)
+            topic = "RadonMaster/Fan"
+            hdr = "FanSetting"
+            pubScribe.pubRecord(pubScribe.CSV_FILE, topic, fanValue, hdr)
 
 
     except :
