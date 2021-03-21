@@ -134,11 +134,11 @@ class mcp4725 :
         elif fanValue < fanMin :
             fanValue = fanMin
 
-        print("FanValue: ", fanValue)
+        # print("FanValue: ", fanValue)
 
         self.writeDAC(fanValue)
 
-        return
+        return fanValue
 
 
 # end class
