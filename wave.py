@@ -339,6 +339,7 @@ def readAirthings() :
 
         if MCP4725_ENABLED :
             fanValue = dac.alg(data)
+            data = [fanValue]
             # print("FanValue: ", fanValue)
             topic = "RadonMaster/Fan"
             hdr = "FanSetting"
