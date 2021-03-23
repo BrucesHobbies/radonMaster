@@ -154,6 +154,12 @@ if __name__ == "__main__" :
     header, tStamp, data = importCsv(filename)
 
     plotMultiVar(tStamp, data, 'Mitigation Fan Vacuum')
+    
+     # --- Radon Fan Speed Value  ---
+    filename = "RadonMaster_Fan.csv"
+    header, tStamp, data = importCsv(filename)
+
+    plotMultiVar(tStamp, data, 'Radon Fan Speed Value')
 
     # Pause to close plots
     plt.show(False)    # Blocks, user must close plot window
