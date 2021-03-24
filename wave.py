@@ -343,7 +343,7 @@ def readAirthings() :
             # print("FanValue: ", fanValue)
             topic = "RadonMaster/Fan"
             hdr = "FanSetting"
-            pubScribe.pubRecord(pubScribe.CSV_FILE, topic, fanValue, hdr)
+            pubScribe.pubRecord(pubScribe.CSV_FILE, topic, data, hdr)
 
 
     except :
