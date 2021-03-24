@@ -124,7 +124,7 @@ class mcp4725 :
         fanMin = 0.5
         fanMax = 0.9
         radonMin = 40
-        RadonMax = 150
+        radonMax = 150
         SF = (fanMax - fanMin) / (radonMax - radonMin)
 
         fanValue = fanMin + (data[0] - radonMin) * SF
