@@ -115,7 +115,7 @@ tempBrackets  = ((77.0,"Red"),(64.0,"Green"),(-99.9,"Blue"))
 #
 radonBrackets = ((4.0,"Red"),(2.7,"Yellow"),(0.0,"Green"))
 vocBrackets   = ((2000.0,"Red"),(250.0,"Yellow"),(0.0,"Green"))
-co2Brackets   = ((2000.0,"Red"),(800.0,"Yellow"),(250.0,"Poor"),(0.0,"Good"))
+co2Brackets   = ((2000.0,"Red"),(800.0,"Yellow"),(0.0,"Good"))
 #humidityBrackets are a separate function
 tempBrackets  = ((77.0,"Red"),(64.0,"Green"),(-99.9,"Blue"))
 
