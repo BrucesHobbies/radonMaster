@@ -15,6 +15,8 @@ REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
   2021/03/01  BrucesHobbies   Modified for pubScribe.py
+  2021/03/24  BrucesHobbies   Added MP4725 DAC output option
+  2021/04/01  BrucesHobbies   Changed wavePlus alert message format
 
 
 OVERVIEW:
@@ -112,12 +114,17 @@ tempBrackets  = ((77.0,"Red"),(64.0,"Green"),(-99.9,"Blue"))
 
 #
 # Airthings updated notification brackets or create your own...
+# https://help.airthings.com/en/articles/4500713-wave-plus-sensor-thresholds
+# Last bracket is always nominal
 #
-radonBrackets = ((4.0,"Red"),(2.7,"Yellow"),(0.0,"Green"))
+radonBrackets = ((4.0,"Red"),(2.7,"Yellow"),(0.0,"Green"))          # Imperial/US
+# radonBrackets = ((150.0,"Red"),(100.0,"Yellow"),(0.0,"Green"))    # Metric
 vocBrackets   = ((2000.0,"Red"),(250.0,"Yellow"),(0.0,"Green"))
-co2Brackets   = ((2000.0,"Red"),(800.0,"Yellow"),(250.0,"Poor"),(0.0,"Good"))
+co2Brackets   = ((1000.0,"Red"),(800.0,"Yellow"),(0.0,"Normal"))
 #humidityBrackets are a separate function
-tempBrackets  = ((77.0,"Red"),(64.0,"Green"),(-99.9,"Blue"))
+
+tempBrackets  = ((77.0,"Red"),(64.0,"Green"),(-99.9,"Blue"))      # Imperial/US, 2nd bracket is nominal
+# tempBrackets  = ((25.0,"Red"),(18.0,"Green"),(-99.9,"Blue"))    # Metric, 2nd bracket is nominal
 
 
 #
@@ -159,118 +166,110 @@ def compareRH(percentage) :
     return i, result
 
 
-def checkAlerts(radonValue, vocValue, co2Value, tempValue, rhValue) :
+def sensor2StringUnits(sensors) :
     global radonAlertTime, vocAlertTime, co2AlertTime, tempAlertTime, humidityAlertTime
 
     alert = 0
-    s = ""
-
     tsec = time.time()
 
-    if radonAlertEnabled :
-        i, result = compareValue(radonValue, radonBrackets)
-        s = s + "Radon: " + result + "\n"
-
-        if i==len(radonAlertTime)-1 :
-            if radonAlertTime[i]==0 :    # send alert once on transition into good bracket
-                radonAlertTime[i] = tsec
-                alert = 1
-        elif (tsec > radonAlertTime[i]+THROTTLE_TIME) :
-            radonAlertTime[i] = tsec
-            alert = 1
-            radonAlertTime[len(radonAlertTime)-1] = 0    # reset 
-
-    if vocAlertEnabled :
-        i, result = compareValue(vocValue, vocBrackets)
-        s = s+ "VOC  : " + result + "\n"
-
-        if i==len(vocAlertTime)-1 :
-            if vocAlertTime[i]==0 :    # send alert once on transition into good bracket
-                vocAlertTime[i] = tsec
-                alert = 1
-        elif (tsec > vocAlertTime[i]+THROTTLE_TIME) :
-            vocAlertTime[i] = tsec
-            alert = 1
-            vocAlertTime[len(vocAlertTime)-1] = 0    # reset 
-
-    if co2AlertEnabled :
-        i, result = compareValue(co2Value, co2Brackets)
-        s = s + "CO2  : " + result + "\n"
-
-        if i==len(co2AlertTime)-1 :
-            if co2AlertTime[i]==0 :    # send alert once on transition into good bracket
-                co2AlertTime[i] = tsec
-                alert = 1
-        elif (tsec > co2AlertTime[i]+THROTTLE_TIME) :
-            co2AlertTime[i] = tsec
-            alert = 1
-            co2AlertTime[len(co2AlertTime)-1] = 0    # reset 
-
-    if tempAlertEnabled :
-        i, result = compareValue(tempValue, tempBrackets)
-        s = s + "Temp : " + result + "\n"
-
-        if i==1 :
-            if tempAlertTime[i]==0 :    # send alert once on transition into good bracket
-                tempAlertTime[i] = tsec
-                alert = 1
-        elif (tsec > tempAlertTime[i]+THROTTLE_TIME) :
-            tempAlertTime[i] = tsec
-            alert = 1
-            tempAlertTime[len(tempAlertTime)-1] = 0    # reset 
-
+    rhValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_HUMIDITY)
+    humidity = 'Humidity    : {0:7.1f} {1:s}   '.format(rhValue, sensors.getUnit(read_waveplus2c.SENSOR_IDX_HUMIDITY))
     if humidityAlertEnabled :
         i, result = compareRH(rhValue)
-        s = s + "RH   : " + result + "\n"
+        humidity += result
 
         if i==len(humidityAlertTime)-1 :
             if humidityAlertTime[i]==0 :    # send alert once on transition into good bracket
                 humidityAlertTime[i] = tsec
                 alert = 1
-        elif (tsec > humidityAlertTime[i]+THROTTLE_TIME) :
+                print("Alert RH good")
+        elif (tsec > (humidityAlertTime[i]+THROTTLE_TIME)) :
             humidityAlertTime[i] = tsec
             alert = 1
+            print("Alert RH")
             humidityAlertTime[len(humidityAlertTime)-1] = 0    # reset 
 
-    """
-    if (MODE=='terminal'):
-        print(s)
-    """
+    radonStValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG)
+    radon_st_avg = 'Radon ST avg: {0:7.1f} {1:s} '.format(radonStValue, sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG))
+    if radonAlertEnabled :
+        i, result = compareValue(radonStValue, radonBrackets)
+        radon_st_avg += result
 
-    return alert, s
+        if i==len(radonAlertTime)-1 :
+            if radonAlertTime[i]==0 :    # send alert once on transition into good bracket
+                radonAlertTime[i] = tsec
+                alert = 1
+                print("Alert Radon good")
+        elif (tsec > (radonAlertTime[i]+THROTTLE_TIME)) :
+            radonAlertTime[i] = tsec
+            alert = 1
+            print("Alert Radon")
+            radonAlertTime[len(radonAlertTime)-1] = 0    # reset 
 
+    radonLtValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG)
+    radon_lt_avg = 'Radon LT avg: {0:7.1f} {1:s} '.format(radonLtValue, sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG))
 
-def sensor2StringUnits(sensors) :
-    s = ""
-    humidity     = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_HUMIDITY))             + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_HUMIDITY))
-    radon_st_avg = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG)) + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG))
-    radon_lt_avg = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG))  + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG))
-    temperature  = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_TEMPERATURE))          + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_TEMPERATURE))
-    pressure     = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE))     + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE))
-    CO2_lvl      = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_CO2_LVL))              + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_CO2_LVL))
-    VOC_lvl      = str(sensors.getValue(read_waveplus2c.SENSOR_IDX_VOC_LVL))              + " " + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_VOC_LVL))
+    tempValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_TEMPERATURE)
+    temperature = 'Temperature : {0:7.1f} {1:s}  '.format(tempValue, sensors.getUnit(read_waveplus2c.SENSOR_IDX_TEMPERATURE))
+    if tempAlertEnabled :
+        i, result = compareValue(tempValue, tempBrackets)
+        temperature += result
+
+        if i==1 :
+            if tempAlertTime[i]==0 :    # send alert once on transition into good bracket
+                tempAlertTime[i] = tsec
+                alert = 1
+                print("Alert Temp good")
+        elif (tsec > (tempAlertTime[i]+THROTTLE_TIME)) :
+            tempAlertTime[i] = tsec
+            alert = 1
+            print("Alert Temp")
+            tempAlertTime[1] = 0    # reset 
+
+    pressValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE)
+    pressure = 'Pressure    : {0:7.2f} {1:s} '.format(pressValue, sensors.getUnit(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE))
+
+    co2Value = sensors.getValue(read_waveplus2c.SENSOR_IDX_CO2_LVL)
+    CO2_lvl = 'CO2 level   : {0:7.1f} {1:s}   '.format(co2Value, sensors.getUnit(read_waveplus2c.SENSOR_IDX_CO2_LVL))
+    if co2AlertEnabled :
+        i, result = compareValue(co2Value, co2Brackets)
+        CO2_lvl += result
+
+        if i==len(co2AlertTime)-1 :
+            if co2AlertTime[i]==0 :    # send alert once on transition into good bracket
+                co2AlertTime[i] = tsec
+                alert = 1
+                print("Alert CO2 good")
+        elif (tsec > (co2AlertTime[i]+THROTTLE_TIME)) :
+            co2AlertTime[i] = tsec
+            alert = 1
+            print("Alert CO2")
+            co2AlertTime[len(co2AlertTime)-1] = 0    # reset 
+
+    vocValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_VOC_LVL)
+    VOC_lvl = 'VOC level   : {0:7.1f} {1:s}   '.format(vocValue, sensors.getUnit(read_waveplus2c.SENSOR_IDX_VOC_LVL))
+    if vocAlertEnabled :
+        i, result = compareValue(vocValue, vocBrackets)
+        VOC_lvl += result
+
+        if i==len(vocAlertTime)-1 :
+            if vocAlertTime[i]==0 :    # send alert once on transition into good bracket
+                vocAlertTime[i] = tsec
+                alert = 1
+                print("Alert VOC good")
+        elif (tsec > (vocAlertTime[i]+THROTTLE_TIME)) :
+            vocAlertTime[i] = tsec
+            alert = 1
+            print("Alert VOC")
+            vocAlertTime[len(vocAlertTime)-1] = 0    # reset 
         
-    data = [radon_st_avg, radon_lt_avg, VOC_lvl, CO2_lvl, temperature, humidity, pressure]
-    return data
+    data = [radonStValue, radonLtValue, vocValue, co2Value, tempValue, rhValue, pressValue]
+    wavePlusString = [radon_st_avg, radon_lt_avg, VOC_lvl, CO2_lvl, temperature, humidity, pressure]
+
+    return data, wavePlusString, alert
 
 
 hdrRow = ""
-
-
-#
-# Log wave data to csv file
-#
-def write2Csv(s) :
-    csvFile = open(wpLogFilename, "a")
-    csvFile.write(s + "\n")
-    csvFile.close()
-
-
-
-def formatLocalTime() :
-    # timeStr = str(datetime.datetime.now())    # yyyy-mm-dd hh:mm:ss.ssssss
-    # return timeStr[:-7]
-    return time.strftime("%a, %Y-%b-%d, %H:%M:%S", time.localtime())	#%b=abbr mo, %B=mo name, %m=m as decimal
 
 
 #
@@ -289,6 +288,9 @@ def writeHeaders() :
                 + "),Humidity (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_HUMIDITY)) \
                 + "),Pressure (" + str(sensors.getUnit(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE)) + ")"
 
+    if MCP4725_ENABLED :
+        hdrRow += ",Fan"
+
     if MODE=='terminal' :
         # print(hdrRow[5:])
         print(hdrRow)
@@ -305,7 +307,6 @@ def readAirthings() :
 
     results = ""
     alert = 0
-    s = ""
 
     if not SerialNumber :
         if msgOnce :
@@ -319,37 +320,27 @@ def readAirthings() :
         sensors = waveplus.read()
         waveplus.disconnect()
 
-        # extract
-        humidity     = sensors.getValue(read_waveplus2c.SENSOR_IDX_HUMIDITY)
-        radon_st_avg = sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG)
-        radon_lt_avg = sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG)
-        temperature  = sensors.getValue(read_waveplus2c.SENSOR_IDX_TEMPERATURE)
-        pressure     = sensors.getValue(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE)
-        CO2_lvl      = sensors.getValue(read_waveplus2c.SENSOR_IDX_CO2_LVL)
-        VOC_lvl      = sensors.getValue(read_waveplus2c.SENSOR_IDX_VOC_LVL)
+        data, wavePlusString, alert = sensor2StringUnits(sensors)
+
+        if MCP4725_ENABLED :
+            fanValue = round(dac.alg(data),3)
+            # print("FanValue: ", fanValue)
+            data.append(fanValue)
+            wavePlusString.append('Fan value   : {0:7.2f}    '.format(fanValue))
 
         if LOGGING_ENABLED :
-            data = [radon_st_avg, radon_lt_avg, VOC_lvl, CO2_lvl, temperature, humidity, pressure]
             topic = "RadonMaster/WavePlus"
             pubScribe.pubRecord(pubScribe.CSV_FILE, topic, data, hdrRow)
         
-            results = formatLocalTime() + " " + str(sensor2StringUnits(sensors))
-
-            alert, s = checkAlerts(radon_st_avg, VOC_lvl, CO2_lvl, temperature, humidity)
-
-        if MCP4725_ENABLED :
-            fanValue = dac.alg(data)
-            # print("FanValue: ", fanValue)
-            topic = "RadonMaster/Fan"
-            hdr = "FanSetting"
-            pubScribe.pubRecord(pubScribe.CSV_FILE, topic, fanValue, hdr)
-
+        results = ""
+        for item in wavePlusString :
+            results += item + "\n"
 
     except :
-        print("Exception!!!")
+        print("readAirthings() Exception!")
         waveplus.disconnect()
 
-    return results, alert, s
+    return results, alert
 
 
 if __name__ == '__main__':

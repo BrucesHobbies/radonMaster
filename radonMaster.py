@@ -10,6 +10,7 @@ REVISION HISTORY
   DATE        AUTHOR          CHANGES
   yyyy/mm/dd  --------------- -------------------------------------
   2021/03/01  BrucesHobbies   Updated to pubScripe.py
+  2021/04/01  BrucesHobbies   Changed wavePlus alert message format
 
 OVERVIEW:
     RadonMaster(TM) is a system to montior a radon mitigation fan
@@ -300,17 +301,15 @@ def myTimer() :
             wave.writeHeaders()
 
         try :
-            lastWaveMsg, alert, alertMsg = wave.readAirthings()
-            print(lastWaveMsg)
+            lastWaveMsg, alert = wave.readAirthings()
 
-            if alert :
-                if waveAlertsEnabled :
-                    topic = "RadonMaster/Alert"
-                    alertMsg = "RadonMaster WavePlus Alert", lastWaveMsg + "\n" + alertMsg
-                    pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, alertMsg)
-                else :
-                    print("=== ALERT! ===")
-                    print(alertMsg)
+            if alert and waveAlertsEnabled :
+                topic = "RadonMaster/Alert"
+                pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, lastWaveMsg)
+            else :
+                print(lastWaveMsg)
+
+            lastWaveMsg = time.strftime("%a, %d %b %Y %H:%M:%S \n", time.localtime()) + lastWaveMsg
 
         except :
             print("Exception with Bluepy Airthings Wave...")

@@ -93,16 +93,8 @@ class mcp4725 :
 
         try :
             register = 0x41
-            # Documentation appears that register contains upper nibble (4-bits) of DAC value
-            # Otherwise, try the alternate approach
-            if 1 :
-                # From example, looks like only 8 bits
-                dataUpper = value >> 4
-                dataLower = (value&15) << 4
-            else :
-                # 12-bits
-                dataUpper = (value & 0x0F00) >> 8
-                dataLower = (value & 0x00FF)
+            dataUpper = value >> 4
+            dataLower = (value&15) << 4
 
             data = [dataUpper, dataLower]
 
@@ -114,7 +106,7 @@ class mcp4725 :
         return
 
     def alg(self, data):
-        print("Alg data: ", data)
+        # print("Alg data: ", data)
 
         #
         # Insert algorithm here...
