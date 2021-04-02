@@ -37,9 +37,17 @@ This program can connect to the AirThings WavePlus using the Raspberry Pi’s Bl
 
 The program runs from a terminal window or at boot. If run from a terminal window the status screen is as shown below:
 
-    Sat, 2020-Dec-05, 11:20:00 Vacuum:   1.5 in.wc
-    Sat, 2020-Dec-05, 11:20:30 ‘Radon ST (pCi/L)’, ‘Radon LT (pCi/L)’, ‘VOC (ppb)’, "CO2 (ppm)’, ‘Temperature (degF)’, ‘Relative Humidity (%rH)’, ‘Air pressure (inHg)’
-    Sat, 2020-Dec-05, 11:20:30 ‘0.4 pCiL’, ‘0.7 pCi/L’, ’84.0 ppb’, ‘476.0 ppm’, ’66.9 degF’, ’32.5 5rH’, ’29.92 inHg’
+    Fri, 02 Apr 2021, 15:15:00 Vacuum:    0.82 in.wc
+    
+    Fri, 02 Apr 2021 15:15:32 
+    Radon ST avg:     0.5 pCi/L Green
+    Radon LT avg:     0.6 pCi/L 
+    VOC level   :    84.0 ppb   Green
+    CO2 level   :   457.0 ppm   Normal
+    Temperature :    61.1 degF  Blue
+    Humidity    :    29.5 %rH   Yellow
+    Pressure    :   29.35 inHg 
+
 
 radonMasterPlot.py plots the radon mitigation fan pressure log and the WavePlus log data. You can view the plots and pan/zoom to specific time periods for the measurements. It uses MatPlotLib and is easy to customize to plot what is of interest to you. Figure 1a is an example plot.
 
