@@ -182,11 +182,9 @@ def sensor2StringUnits(sensors) :
             if humidityAlertTime[i]==0 :    # send alert once on transition into good bracket
                 humidityAlertTime[i] = tsec
                 alert = 1
-                print("Alert RH good")
         elif (tsec > (humidityAlertTime[i]+THROTTLE_TIME)) :
             humidityAlertTime[i] = tsec
             alert = 1
-            print("Alert RH")
             humidityAlertTime[len(humidityAlertTime)-1] = 0    # reset 
 
     radonStValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_SHORT_TERM_AVG)
@@ -199,11 +197,9 @@ def sensor2StringUnits(sensors) :
             if radonAlertTime[i]==0 :    # send alert once on transition into good bracket
                 radonAlertTime[i] = tsec
                 alert = 1
-                print("Alert Radon good")
         elif (tsec > (radonAlertTime[i]+THROTTLE_TIME)) :
             radonAlertTime[i] = tsec
             alert = 1
-            print("Alert Radon")
             radonAlertTime[len(radonAlertTime)-1] = 0    # reset 
 
     radonLtValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_RADON_LONG_TERM_AVG)
@@ -219,11 +215,9 @@ def sensor2StringUnits(sensors) :
             if tempAlertTime[i]==0 :    # send alert once on transition into good bracket
                 tempAlertTime[i] = tsec
                 alert = 1
-                print("Alert Temp good")
         elif (tsec > (tempAlertTime[i]+THROTTLE_TIME)) :
             tempAlertTime[i] = tsec
             alert = 1
-            print("Alert Temp")
             tempAlertTime[1] = 0    # reset 
 
     pressValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_REL_ATM_PRESSURE)
@@ -239,11 +233,9 @@ def sensor2StringUnits(sensors) :
             if co2AlertTime[i]==0 :    # send alert once on transition into good bracket
                 co2AlertTime[i] = tsec
                 alert = 1
-                print("Alert CO2 good")
         elif (tsec > (co2AlertTime[i]+THROTTLE_TIME)) :
             co2AlertTime[i] = tsec
             alert = 1
-            print("Alert CO2")
             co2AlertTime[len(co2AlertTime)-1] = 0    # reset 
 
     vocValue = sensors.getValue(read_waveplus2c.SENSOR_IDX_VOC_LVL)
@@ -256,11 +248,9 @@ def sensor2StringUnits(sensors) :
             if vocAlertTime[i]==0 :    # send alert once on transition into good bracket
                 vocAlertTime[i] = tsec
                 alert = 1
-                print("Alert VOC good")
         elif (tsec > (vocAlertTime[i]+THROTTLE_TIME)) :
             vocAlertTime[i] = tsec
             alert = 1
-            print("Alert VOC")
             vocAlertTime[len(vocAlertTime)-1] = 0    # reset 
         
     data = [radonStValue, radonLtValue, vocValue, co2Value, tempValue, rhValue, pressValue]
