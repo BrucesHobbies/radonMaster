@@ -54,7 +54,7 @@ radonMasterPlot.py plots the radon mitigation fan pressure log and the WavePlus 
 ![Figure 1a: Short and Long Term Radon Levels](https://github.com/BrucesHobbies/radonMaster/blob/main/figures/Figure1a.png)
 
 # Required Hardware 
-As an Amazon Associate I earn from qualifying purchases. I appreciate your support, if you purchase using the links below.
+As an Amazon Associate I earn a small commission from qualifying purchases. It does not in any way change the prices on Amazon. I appreciate your support, if you purchase using the links below.
 ## RadonMaster (about $20 USD for parts)
 -	Honeywell ABPDRRV001PDSA3 or ABPMRRV060MG2A3 pressure sensor available from Mouser, Arrow, Newark, Digikey, etc. for around $13 USD
 [Mouser: ABPDRRV001PDSA3](https://www.mouser.com/ProductDetail/Honeywell/ABPDRRV001PDSA3?qs=%2Fha2pyFadui6v3NmLJXcNaJhDLtsWyFpilGTkFr3RAit4EGjj7MIDQ%3D%3D)
