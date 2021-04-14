@@ -11,6 +11,8 @@ REVISION HISTORY
   yyyy/mm/dd  --------------- -------------------------------------
   2021/03/01  BrucesHobbies   Updated to pubScripe.py
   2021/04/01  BrucesHobbies   Changed wavePlus alert message format
+  2021/04/14  BrucesHobbies   Added support for variable tone buzzer
+                              Added high pressure alert
 
 OVERVIEW:
     RadonMaster(TM) is a system to montior a radon mitigation fan
@@ -63,6 +65,7 @@ if AIRTHINGS :
 # --- User pressure/vacuum sensor configuration parameters ---
 #
 # abp = sensorHnyAbp.SensorHnyAbp("001PDS")    # -1 to +1 psi diff SPI often found in DIP package
+# abp = sensorHnyAbp.SensorHnyAbp("001PG2")    # -1 to +1 psi diff I2C
 abp = sensorHnyAbp.SensorHnyAbp("060MG2")    # 0 to 60 mbar gage I2C but often found in surface mount package
 
 tInterval = 1	       # time interval in seconds between fan vacuum measurements (default: 1, 
@@ -76,6 +79,7 @@ tAverage = 60          # averaging time in measurements, recommend multiple meas
 pDeltaLowSide  = 0.4    # delta inches water column 
 pDeltaHighSide = 0.4    # delta inches water column
 pLowPressAlert = 0.5    # Absolute value in case auto calibration is off      
+pHighPressAlert = 5.0    # Absolute value in case auto calibration is off      
 
 #
 #--- User Email Alerts Configuration ---
@@ -88,10 +92,10 @@ pLowPressAlert = 0.5    # Absolute value in case auto calibration is off
 #
 
 pressAlertsEnabled = 1          # non zero enables sending of email messages
-waveAlertsEnabled = 0           # non zero enables sending of alerts for Wave Plus readings
+waveAlertsEnabled = 1           # non zero enables sending of alerts for Wave Plus readings
 
 statusMsgEnabled = 1
-statusMsgHHMM  = [12, 0]        # Status message time to send [hh, mm]
+statusMsgHHMM  = [12, 5]        # Status message time to send [hh, mm]
 statusInterval = 1              # Interval in days (0=use DOW, 1=every day, 2=every other day, 7=weekly, etc.)
 statusDOM      = 0              # Day of month if non-zero
 statusDOW      = 0              # Day of week if interval and DOM are not used (0=Mon, 1=Tue, etc)
@@ -153,8 +157,12 @@ def paramCheck() :
         print("Error (pDeltaHighSide): Vacuum delta should be in range of 0.1 - 1.0 inches of water column.")
         sys.exit(" Exit")
 
-    if (pLowPressAlert < 0.1) or (pLowPressAlert > 5.0) :
-        print("Error (pLowPressAlert): Minimum vacuum should be in range of 0.1 - 5.0 inches of water column.")
+    if (pLowPressAlert < 0.1) or (pLowPressAlert > pHighPressAlert ) :
+        print("Error (pLowPressAlert): Minimum vacuum should be in range of 0.1 - pHighPressAlert inches of water column.")
+        sys.exit(" Exit")
+
+    if (pHighPressAlert > 10.0) :
+        print("Error (pHighPressAlert): Maximum vacuum should be less than 10.0 inches of water column.")
         sys.exit(" Exit")
 
 # end paramCheck()
@@ -223,7 +231,9 @@ def radonAlg(sensorAvg) :
         if (sensorAvg < (pFiltered-pDeltaLowSide)) or (sensorAvg > (pFiltered+pDeltaLowSide)) :
             s = "Alert: vacuum delta."
         elif (abs(sensorAvg) < pLowPressAlert) :
-            s = "Alert: vacuum less than 0.5 inch water column."
+            s = "Alert: vacuum less than low limit (pLowPressAlert)."
+        elif (abs(sensorAvg) > pHighPressAlert) :
+            s = "Alert: vacuum greater than high limit (pHighPressAlert)."
         else :
             s = ""    # Nominal: no alert
 
@@ -290,6 +300,8 @@ def myTimer() :
                     lastAlertTime = tsec
                     topic = "RadonMaster/Alert"
                     pubScribe.pubRecord(pubScribe.EMAIL_SMS, topic, alertMsg)
+
+                # pubScribe.pubRecord(pubScribe.BUZZER, 'Buzzer', {'Frequency': 700, 'Dutycycle': 10, 'Duration': 10})
 
             else :
                 print(alertMsg)
