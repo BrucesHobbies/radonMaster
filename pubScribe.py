@@ -97,6 +97,8 @@ buzzerPIN = 18                         # Customize based on your wiring
 if MQTT_ENABLED :
     import paho.mqtt.client as mqtt
     mqttClient = mqtt.Client()
+    broker = "homeassistant" #or ip address
+    port = 1883
 
 if EMAIL_SMS_ENABLED :
     import sendEmail
@@ -168,6 +170,18 @@ def pubRecord(dest, topic, data, hdr="") :
         else :
             msg = data
         mqttClient.publish(topic, msg)
+      
+def on_publish(client, userdata, result):  # create function for callback
+    print("data published \n")
+    pass
+
+client1 = paho.Client("control1")  # create client object
+client1.username_pw_set("username", "password")
+client1.on_publish = on_publish  # assign function to callback
+client1.connect(broker, port)  # establish connection
+ret = client1.publish("test/topic", "on", qos=1)  # publish
+print(ret)
+client1.loop_forever()
 
     if CSV_FILE_ENABLED and (CSV_FILE in dest) :
         writeCsv(topic, data, hdr)
